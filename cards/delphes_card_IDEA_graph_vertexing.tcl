@@ -51,6 +51,7 @@ set ExecutionPath {
 
   EFlowTrackMerger
   EFlowMerger
+  NeutralEFlowMerger
 
   PhotonEfficiency
   PhotonIsolation
@@ -615,6 +616,12 @@ module Merger EFlowMerger {
   set OutputArray eflow
 }
 
+module Merger NeutralEFlowMerger {
+  add InputArray TimeOfFlightNeutralHadron/eflowNeutralHadrons
+  add InputArray Calorimeter/eflowPhotons
+  set OutputArray neutraleflow
+}
+
 
 ####################
 # Tower merger
@@ -976,7 +983,7 @@ module TauTagging TauTagging {
 # Graph-based Displaced Vertex Finder
 ############################################
 
-# --- GraphDisplacedVertexFinder_v5 -------------------------------------------
+# --- GraphDisplacedVertexFinder -------------------------------------------
 module GraphDisplacedVertexFinder GraphDisplacedVertexFinder {
 
   # Input track array (can be TrackCovariance or EFlowTrack)
