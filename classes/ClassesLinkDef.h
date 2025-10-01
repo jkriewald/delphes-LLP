@@ -56,6 +56,10 @@
 #pragma link C++ class Photon+;
 #pragma link C++ class Electron+;
 #pragma link C++ class Muon+;
+#pragma link C++ class DisplacedLepton+;
+#pragma link C++ class DisplacedJet+;
+#pragma link C++ class DisplacedVertex+;
+#pragma link C++ class LLPCandidate+;
 #pragma link C++ class CscCluster+;
 
 #pragma link C++ class Jet+;
