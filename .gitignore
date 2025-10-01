@@ -4,7 +4,7 @@
 *bk
 CaloGrid
 ClassesDict_rdict.pcm
-DelphesHepMC
+DelphesHepMC*
 DelphesLHEF
 DelphesROOT
 DelphesSTDHEP
