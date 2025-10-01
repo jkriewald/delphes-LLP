@@ -67,6 +67,11 @@ private:
   void ProcessRho(ExRootTreeBranch *branch, TObjArray *array);
   void ProcessWeight(ExRootTreeBranch *branch, TObjArray *array);
   void ProcessHectorHit(ExRootTreeBranch *branch, TObjArray *array);
+  //vertexing additions, new root trees based on new delphes classes
+  void ProcessDisplacedLeptons(ExRootTreeBranch *branch, TObjArray *array);
+  void ProcessDisplacedJets(ExRootTreeBranch *branch, TObjArray *array);
+  void ProcessDisplacedVertices(ExRootTreeBranch *branch, TObjArray *array);
+  void ProcessLLPCandidates(ExRootTreeBranch *branch, TObjArray *array);
 
 
 #if !defined(__CINT__) && !defined(__CLING__)
