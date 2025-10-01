@@ -76,6 +76,10 @@ void TreeWriter::Init()
   fClassMap[Photon::Class()] = &TreeWriter::ProcessPhotons;
   fClassMap[Electron::Class()] = &TreeWriter::ProcessElectrons;
   fClassMap[Muon::Class()] = &TreeWriter::ProcessMuons;
+  fClassMap[DisplacedLepton::Class()] = &TreeWriter::ProcessDisplacedLeptons;
+  fClassMap[DisplacedJet::Class()] = &TreeWriter::ProcessDisplacedJets;
+  fClassMap[DisplacedVertex::Class()] = &TreeWriter::ProcessDisplacedVertices;
+  fClassMap[LLPCandidate::Class()] = &TreeWriter::ProcessLLPCandidates;
   fClassMap[CscCluster::Class()] = &TreeWriter::ProcessCscCluster;
   fClassMap[Jet::Class()] = &TreeWriter::ProcessJets;
   fClassMap[MissingET::Class()] = &TreeWriter::ProcessMissingET;
