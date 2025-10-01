@@ -35,6 +35,11 @@ CompBase *Photon::fgCompare = CompPT<Photon>::Instance();
 CompBase *Electron::fgCompare = CompPT<Electron>::Instance();
 CompBase *Muon::fgCompare = CompPT<Muon>::Instance();
 
+CompBase *DisplacedLepton::fgCompare = CompPT<DisplacedLepton>::Instance();
+CompBase *DisplacedJet::fgCompare = CompPT<DisplacedJet>::Instance();
+CompBase *DisplacedVertex::fgCompare = CompPT<DisplacedVertex>::Instance();
+CompBase *LLPCandidate::fgCompare = CompPT<LLPCandidate>::Instance();
+
 CompBase *Jet::fgCompare = CompPT<Jet>::Instance();
 CompBase *Track::fgCompare = CompPT<Track>::Instance();
 CompBase *Tower::fgCompare = CompE<Tower>::Instance();
@@ -262,7 +267,24 @@ Candidate::Candidate() :
   ExclYmerge56(0),
   ParticleDensity(0),
   fFactory(0),
-  fArray(0)
+  fArray(0),
+  //Vertexing
+  vCovariance(3),
+  NTracks(0),
+  vNDF(0),
+  vChi2NDF(0.0),
+  NElectrons(0),
+  NMuons(0),
+  NChargedHadrons(0),
+  NJets(0),
+  CosThetaDVMom(0),
+  MassCorr(0),
+  Lxy(0), ErrorLxy(0),
+  Lz(0), ErrorLz(0),
+  Lxyz(0), ErrorLxyz(0),
+  ErrorXY(0), ErrorXZ(0), ErrorYZ(0),
+  ctau(0),
+  boostbeta(0), boostgamma(0), betagamma(0)
 {
   int i;
   Edges[0] = 0.0;
@@ -290,6 +312,11 @@ Candidate::Candidate() :
     PrunedP4[i].SetXYZT(0.0, 0.0, 0.0, 0.0);
     SoftDroppedP4[i].SetXYZT(0.0, 0.0, 0.0, 0.0);
   }
+  //vertexing
+  AssociatedTracks.Clear();
+  FitTracks.Clear();
+  AssociatedJets.Clear();
+  AssociatedLeptons.Clear();
 }
 
 //------------------------------------------------------------------------------
@@ -484,6 +511,36 @@ void Candidate::Copy(TObject &obj) const
   object.fFactory = fFactory;
   object.fArray = 0;
 
+    //vertexing
+  object.vCovariance = vCovariance;
+  object.vChi2NDF = vChi2NDF;
+  object.vNDF = vNDF;
+  object.AssociatedTracks = AssociatedTracks;
+  object.FitTracks = FitTracks;
+  object.AssociatedJets = AssociatedJets;
+  object.AssociatedLeptons = AssociatedLeptons;
+  object.NTracks = NTracks;
+  object.NElectrons = NElectrons;
+  object.NMuons = NMuons;
+  object.NChargedHadrons = NChargedHadrons;
+  object.NJets = NJets;
+  object.CosThetaDVMom = CosThetaDVMom;
+  object.MassCorr = MassCorr;
+  object.Lxy = Lxy;
+  object.Lxyz = Lxyz;
+  object.Lz = Lz;
+  object.ErrorLxy = ErrorLxy;
+  object.ErrorLxyz = ErrorLxyz;
+  object.ErrorLz = ErrorLz;
+  object.ErrorXY = ErrorXY;
+  object.ErrorXZ = ErrorXZ;
+  object.ErrorYZ = ErrorYZ;
+  object.ctau = ctau;
+  object.boostbeta = boostbeta;
+  object.boostgamma = boostgamma;
+  object.betagamma = betagamma;
+
+
   // copy cluster timing info
   copy(ECalEnergyTimePairs.begin(), ECalEnergyTimePairs.end(), back_inserter(object.ECalEnergyTimePairs));
 
@@ -626,4 +683,33 @@ void Candidate::Clear(Option_t * /*option*/)
   NSubJetsSoftDropped = 0;
 
   fArray = 0;
+
+  //vertexing
+  vNDF = 0;
+  vChi2NDF = 0;
+  NTracks = 0;
+  vCovariance.Zero();
+  AssociatedTracks.Clear();
+  AssociatedJets.Clear();
+  AssociatedLeptons.Clear();
+  FitTracks.Clear();
+  NElectrons = 0;
+  NMuons = 0;
+  NJets = 0;
+  NChargedHadrons = 0;
+  CosThetaDVMom = 0;
+  MassCorr = 0;
+  Lxy = 0;
+  Lz = 0;
+  Lxyz = 0;
+  ErrorLxy = 0;
+  ErrorLz = 0;
+  ErrorLxyz = 0;
+  ErrorXY = 0;
+  ErrorXZ = 0;
+  ErrorYZ = 0;
+  ctau = 0;
+  boostbeta = 0;
+  boostgamma = 0;
+  betagamma = 0;
 }

@@ -348,6 +348,302 @@ public:
 
   ClassDef(Muon, 4)
 };
+//---------------------------------------------------------------------------
+
+class DisplacedLepton: public SortableObject
+{
+public:
+  Int_t PID;
+
+  Float_t PT; // Muon transverse momentum
+  Float_t P;
+  Float_t Eta; // Muon pseudorapidity
+  Float_t Phi; // Muon azimuthal angle
+
+  Float_t Lxy;  // transverse electron vertex
+  Float_t Lz;  // z electron vertex
+  Float_t Lxyz; // Total displacement
+  Float_t ErrorLxy; 
+  Float_t ErrorLz;
+  Float_t ErrorLxyz;
+  Float_t Mass; // vertex mass
+
+  Float_t X; // vertex position (x component)
+  Float_t Y; // vertex position (y component)
+  Float_t Z; // vertex position (z component)
+  Float_t T; // vertex time
+  //Vertexing
+  
+  Float_t ErrorX;
+  Float_t ErrorY;
+  Float_t ErrorZ;
+  Float_t ErrorT;
+  Float_t vChi2NDF;
+  Int_t vNDF;
+  TRefArray AssociatedTracks;
+  TRefArray FitTracks;
+  TRefArray AssociatedJets;
+  Int_t NTracks;
+  Int_t NElectrons;
+  Int_t NMuons;
+  Int_t NChargedHadrons;
+
+  // Float_t T; // particle arrival time of flight
+
+  Int_t Charge; // Vertex charge
+
+  Float_t EhadOverEem; // ratio of the hadronic versus electromagnetic energy deposited in the calorimeter
+
+  TRef Particle; // reference to generated particle
+
+  Float_t IsolationVar; // isolation variable
+  Float_t IsolationVarRhoCorr; // isolation variable
+  Float_t SumPtCharged; // isolation variable
+  Float_t SumPtNeutral; // isolation variable
+  Float_t SumPtChargedPU; // isolation variable
+  Float_t SumPt; // isolation variable
+
+  Float_t D0; // track transverse impact parameter
+  Float_t DZ; // track longitudinal impact parameter
+  Float_t ErrorD0; // track transverse impact parameter error
+  Float_t ErrorDZ; // track longitudinal impact parameter error
+
+  static CompBase *fgCompare; //!
+  const CompBase *GetCompare() const { return fgCompare; }
+
+  TLorentzVector P4() const;
+
+  ClassDef(DisplacedLepton, 4)
+};
+
+class DisplacedVertex: public SortableObject
+{
+public:
+  // Int_t PID;
+
+  Float_t PT; // Muon transverse momentum
+  Float_t P;
+  Float_t Eta; // Muon pseudorapidity
+  Float_t Phi; // Muon azimuthal angle
+
+  Float_t Lxy;  // transverse electron vertex
+  Float_t Lz;  // z electron vertex
+  Float_t Lxyz; // Total displacement
+  Float_t ErrorLxy; // Total displacement
+  Float_t ErrorLz;
+  Float_t ErrorLxyz;
+  Float_t ctau;
+  Float_t boostbeta;
+  Float_t boostgamma;
+  Float_t betagamma;
+  Float_t Mass; // vertex mass
+
+  Float_t X; // vertex position (x component)
+  Float_t Y; // vertex position (y component)
+  Float_t Z; // vertex position (z component)
+  Float_t T; // vertex time
+
+  //Vertexing
+  
+  Float_t ErrorX;
+  Float_t ErrorY;
+  Float_t ErrorZ;
+  Float_t ErrorT;
+  Float_t ErrorXY;
+  Float_t ErrorXZ;
+  Float_t ErrorYZ;
+
+  Float_t vChi2NDF;
+  Int_t vNDF;
+  TRefArray AssociatedTracks;
+  TRefArray FitTracks;
+  TRefArray AssociatedJets;
+  TRefArray AssociatedLeptons;
+  Int_t NTracks;
+  Int_t NElectrons;
+  Int_t NMuons;
+  Int_t NChargedHadrons;
+  Int_t NJets;
+  Double_t CosThetaDVMom;
+  Double_t MassCorr;
+
+  Int_t Charge; // Vertex charge
+
+  static CompBase *fgCompare; //!
+  const CompBase *GetCompare() const { return fgCompare; }
+
+  TLorentzVector P4() const;
+
+  ClassDef(DisplacedVertex, 4)
+};
+
+class LLPCandidate: public SortableObject
+{
+public:
+  // Int_t PID;
+
+  Float_t PT; // Muon transverse momentum
+  Float_t P;
+  Float_t Eta; // Muon pseudorapidity
+  Float_t Phi; // Muon azimuthal angle
+  Float_t CosTheta;
+
+  Float_t Lxy;  // transverse electron vertex
+  Float_t Lz;  // z electron vertex
+  Float_t Lxyz; // Total displacement
+  Float_t ErrorLxy; // Total displacement
+  Float_t ErrorLz;
+  Float_t ErrorLxyz;
+  Float_t ctau;
+  Float_t boostbeta;
+  Float_t boostgamma;
+  Float_t betagamma;
+  Float_t Mass; // vertex mass
+
+  Float_t X; // vertex position (x component)
+  Float_t Y; // vertex position (y component)
+  Float_t Z; // vertex position (z component)
+  Float_t T; // vertex time
+
+  //Vertexing
+  
+  Float_t ErrorX;
+  Float_t ErrorY;
+  Float_t ErrorZ;
+  Float_t ErrorT;
+  Float_t ErrorXY;
+  Float_t ErrorXZ;
+  Float_t ErrorYZ;
+
+  Float_t vChi2NDF;
+  Int_t vNDF;
+  TRefArray AssociatedTracks;
+  TRefArray FitTracks;
+  TRefArray AssociatedJets;
+  TRefArray AssociatedLeptons;
+  Int_t NTracks;
+  Int_t NElectrons;
+  Int_t NMuons;
+  Int_t NChargedHadrons;
+  Int_t NJets;
+  Double_t CosThetaDVMom;
+  Double_t MassCorr;
+
+  Int_t Charge; // Vertex charge
+
+
+  static CompBase *fgCompare; //!
+  const CompBase *GetCompare() const { return fgCompare; }
+
+  TLorentzVector P4() const;
+
+  ClassDef(LLPCandidate, 4)
+};
+
+class DisplacedJet: public SortableObject
+{
+public:
+  // Int_t PID;
+
+  Float_t PT; // jet transverse momentum
+  Float_t Eta; // jet pseudorapidity
+  Float_t Phi; // jet azimuthal angle
+
+  Float_t Mass; // jet invariant mass
+
+  Float_t DeltaEta; // jet radius in pseudorapidity
+  Float_t DeltaPhi; // jet radius in azimuthal angle
+
+  UInt_t Flavor; // jet flavor
+  UInt_t FlavorAlgo; // jet flavor
+  UInt_t FlavorPhys; // jet flavor
+  UInt_t TauFlavor; // jet flavor according to Tau tagging module
+
+  UInt_t BTag; // 0 or 1 for a jet that has been tagged as containing a heavy quark
+  UInt_t BTagAlgo; // 0 or 1 for a jet that has been tagged as containing a heavy quark
+  UInt_t BTagPhys; // 0 or 1 for a jet that has been tagged as containing a heavy quark
+
+  UInt_t TauTag; // 0 or 1 for a jet that has been tagged as a tau
+  Float_t TauWeight; // probability for jet to be identified as tau
+
+  Int_t Charge; // tau charge
+
+  Float_t EhadOverEem; // ratio of the hadronic versus electromagnetic energy deposited in the calorimeter
+
+  Int_t NCharged; // number of charged constituents
+  Int_t NNeutrals; // number of neutral constituents
+
+  Float_t NeutralEnergyFraction; // charged energy fraction
+  Float_t ChargedEnergyFraction; // neutral energy fraction
+
+  Float_t Beta; // (sum pt of charged pile-up constituents)/(sum pt of charged constituents)
+  Float_t BetaStar; // (sum pt of charged constituents coming from hard interaction)/(sum pt of charged constituents)
+  Float_t MeanSqDeltaR; // average distance (squared) between constituent and jet weighted by pt (squared) of constituent
+  Float_t PTD; // average pt between constituent and jet weighted by pt of constituent
+  Float_t FracPt[5]; // (sum pt of constituents within a ring 0.1*i < DeltaR < 0.1*(i+1))/(sum pt of constituents)
+
+  Float_t Tau[5]; // N-subjettiness
+
+  TLorentzVector SoftDroppedJet;
+  TLorentzVector SoftDroppedSubJet1;
+  TLorentzVector SoftDroppedSubJet2;
+
+  TLorentzVector TrimmedP4[5]; // first entry (i = 0) is the total Trimmed Jet 4-momenta and from i = 1 to 4 are the trimmed subjets 4-momenta
+  TLorentzVector PrunedP4[5]; // first entry (i = 0) is the total Pruned Jet 4-momenta and from i = 1 to 4 are the pruned subjets 4-momenta
+  TLorentzVector SoftDroppedP4[5]; // first entry (i = 0) is the total SoftDropped Jet 4-momenta and from i = 1 to 4 are the pruned subjets 4-momenta
+
+  Int_t NSubJetsTrimmed; // number of subjets trimmed
+  Int_t NSubJetsPruned; // number of subjets pruned
+  Int_t NSubJetsSoftDropped; // number of subjets soft-dropped
+
+  Double_t ExclYmerge12;
+  Double_t ExclYmerge23;
+  Double_t ExclYmerge34;
+  Double_t ExclYmerge45;
+  Double_t ExclYmerge56;
+
+  TRefArray Constituents; // references to constituents
+  TRefArray Particles; // references to generated particles
+  
+
+  Float_t Lxy;  // transverse electron vertex
+  Float_t Lz;  // z electron vertex
+  Float_t Lxyz; // Total displacement
+  Float_t ErrorLxy; 
+  Float_t ErrorLz;
+  Float_t ErrorLxyz;
+
+  Float_t X; // vertex position (x component)
+  Float_t Y; // vertex position (y component)
+  Float_t Z; // vertex position (z component)
+  Float_t T; // vertex time
+
+  //Vertexing
+  
+  Float_t ErrorX;
+  Float_t ErrorY;
+  Float_t ErrorZ;
+  Float_t ErrorT;
+
+  Float_t vChi2NDF;
+  Int_t vNDF;
+  TRefArray AssociatedTracks;
+  TRefArray FitTracks;
+  Int_t NTracks;
+  Int_t NElectrons;
+  Int_t NMuons;
+  Int_t NChargedHadrons;
+
+
+  static CompBase *fgCompare; //!
+  const CompBase *GetCompare() const { return fgCompare; }
+
+  TLorentzVector P4() const;
+  TLorentzVector Area;
+
+  ClassDef(DisplacedJet, 4)
+};
+
 
 //---------------------------------------------------------------------------
 
@@ -787,6 +1083,37 @@ public:
   // ACTS compliant 6x6 track covariance (D0, phi, Curvature, dz, ctg(theta))
 
   TMatrixDSym TrackCovariance;
+
+  //Vertexing
+  Float_t Lxy;
+  Float_t Lz;
+  Float_t Lxyz;
+  Float_t ErrorLxy;
+  Float_t ErrorLz;
+  Float_t ErrorLxyz;
+  Float_t ErrorXY;
+  Float_t ErrorXZ;
+  Float_t ErrorYZ;
+
+  Double_t CosThetaDVMom;
+  Double_t MassCorr;
+  Double_t ctau;
+  Double_t boostbeta;
+  Double_t boostgamma;
+  Double_t betagamma;
+
+  TMatrixDSym vCovariance;
+  Float_t vChi2NDF;
+  Int_t vNDF;
+  TRefArray AssociatedTracks;
+  TRefArray FitTracks;
+  TRefArray AssociatedJets;
+  TRefArray AssociatedLeptons;
+  Int_t NTracks;
+  Int_t NElectrons;
+  Int_t NMuons;
+  Int_t NChargedHadrons;
+  Int_t NJets;
 
   // vertex variables
 
