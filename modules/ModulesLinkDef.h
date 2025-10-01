@@ -84,6 +84,7 @@
 #include "modules/CscClusterId.h"
 #include "modules/GraphDisplacedVertexFinder.h"
 #include "modules/LLPReconstruction.h"
+#include "modules/IdenticalObjectRemover.h"
 
 #ifdef __CINT__
 
@@ -150,5 +151,6 @@
 #pragma link C++ class CscClusterId+;
 #pragma link C++ class GraphDisplacedVertexFinder+;
 #pragma link C++ class LLPReconstruction+;
+#pragma link C++ class IdenticalObjectRemover+;
 
 #endif
