@@ -3894,8 +3894,8 @@ void GraphDisplacedVertexFinder::FitPrimaryVertex() {
   TMatrixDSym CvPV(3); CvPV = Cbs; // default to prior
   bool havePV = false;
 
-  double PVChi2;
-  int PVndf;
+  double PVChi2 = 0.;
+  int PVndf = 0;
   if (fPromptTracks.size() >= 2) {
     FitOpts PVopts = fFitOpts;
     PVopts.useBeamConstraint = true;     // activates (fBeamPos,fBeamCov) in fitter
