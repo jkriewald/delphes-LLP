@@ -11,17 +11,25 @@ Delphes-LLP is a fork of the official Delphes repo with the addition of the ```G
 The ```GraphDisplacedVertexFinder``` uses graph clustering of tracks to find candidate vertices and fits them with a new initialisation free fitter.
 The ```LLPReconstruction``` module matches jets (if available) and leptons (if available) to displaced vertices and reconstructs the LLP kinematics.
 
-The details can be found in my paper https://arXiv.org/abs/2510.xxxxxx (to appear soon).
+The details can be found in my paper https://arXiv.org/abs/2510.00856 (to appear soon).
 
-The code can be compiled as usual (see original instructions below), no new dependencies were added.
+The code can be compiled as usual (see also original instructions below), no new dependencies were added.
 I had to add several new variables to the ```Candidate``` class as well as add new classes for displaced objects (displaced vertices, displaced leptons, displaced jets and LLP candidates) that are written in the root tree (with changes to the root ```TreeWriter``` module).
+
+So download or clone the repo and then install via:
+
+```
+cd Delphes-LLP
+./configure
+make -j10
+```
 
 The Vertexing module ```GraphDisplacedVertexFinder``` can be added to any detector card in which ```TrackCovariance``` or ```TrackSmearing``` are used to compute the covariance matrices of track parameters.
 If vertex time should be fitted, the ```TimeSmearing``` module has to be executed upstream as well.
 
 The ```LLPReconstruction``` module relies on vertices found by ```GraphDisplacedVertexFinder``` and the corrected (refitted) tracks/eflow-tracks outputted by ```GraphDisplacedVertexFinder```.
 
-For example usage see the card ```delphes_card_IDEA_graph_vertexing.tcl``` which was used in https://arXiv.org/abs/2510.xxxxxx 
+For example usage see the card ```delphes_card_IDEA_graph_vertexing.tcl``` which was used in https://arXiv.org/abs/2510.00856 
 
 # Delphes
 
