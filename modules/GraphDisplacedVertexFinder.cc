@@ -4136,7 +4136,7 @@ namespace {
         TMatrixD tmp(V, TMatrixD::kMult, D);
         TMatrixD dense(tmp, TMatrixD::kMult, TMatrixD(TMatrixD::kTransposed, V));
         // Symmetrize result to kill fp noise
-        for (int i=0;i<n;++i) for (int j=i+1;j<n;++j){
+        for (int i=0;i<n;++i) for (int j=0;j<=i;++j){
           const double a = 0.5*(dense(i,j)+dense(j,i));
           A_spd(i,j)=a; A_spd(j,i)=a;
         }
@@ -4155,7 +4155,7 @@ namespace {
         // A_spd = V * D * V.T() <- this is not thread-safe and might corrupt the memory due to aliasing of .T() creating a proxy view of V; different optimisers might mix the multiplication order
         TMatrixD tmp(V, TMatrixD::kMult, D);
         TMatrixD dense(tmp, TMatrixD::kMult, TMatrixD(TMatrixD::kTransposed, V));
-        for (int i=0;i<n;++i) for (int j=i+1;j<n;++j){
+        for (int i=0;i<n;++i) for (int j=0;j<=i;++j){
           const double a = 0.5*(dense(i,j)+dense(j,i));
           A_spd(i,j)=a; A_spd(j,i)=a;
         }
