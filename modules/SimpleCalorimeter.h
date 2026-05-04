@@ -54,10 +54,16 @@ private:
   typedef std::map<Long64_t, Double_t> TFractionMap; //!
   typedef std::map<Double_t, std::set<Double_t> > TBinMap; //!
 
-  Candidate *fTower;
+  Candidate *fTower = nullptr;
   Double_t fTowerEta, fTowerPhi, fTowerEdges[4];
+
   Double_t fTowerEnergy;
+  Double_t fNeutralEnergy;
   Double_t fTrackEnergy;
+
+  Double_t fTowerEnergyFromPU;
+  Double_t fTrackEnergyFromPU;
+  Double_t fNeutralEnergyFromPU;
 
   Double_t fTowerTime;
   Double_t fTrackTime;
@@ -91,29 +97,30 @@ private:
 
   std::vector<Double_t> fTrackFractions;
 
-  // Insensitive bins stored as integer indices (etaBin, phiBin) 
-  std::set< std::pair<Short_t, Short_t> > fInsensitiveBinSet;
+  // Insensitive bins stored as integer indices (etaBin, phiBin)
+  std::set<std::pair<Short_t, Short_t> > fInsensitiveBinSet;
 
   // Flag telling whether the *current* tower is insensitive or not
-  inline bool IsTowerInsensitive(Short_t etaBin, Short_t phiBin) const {
+  inline bool IsTowerInsensitive(Short_t etaBin, Short_t phiBin) const
+  {
     return fInsensitiveBinSet.find(std::make_pair(etaBin, phiBin)) != fInsensitiveBinSet.end();
   }
 
-  DelphesFormula *fResolutionFormula; //!
+  DelphesFormula *fResolutionFormula = nullptr; //!
 
-  TIterator *fItParticleInputArray; //!
-  TIterator *fItTrackInputArray; //!
+  TIterator *fItParticleInputArray = nullptr; //!
+  TIterator *fItTrackInputArray = nullptr; //!
 
-  const TObjArray *fParticleInputArray; //!
-  const TObjArray *fTrackInputArray; //!
+  const TObjArray *fParticleInputArray = nullptr; //!
+  const TObjArray *fTrackInputArray = nullptr; //!
 
-  TObjArray *fTowerOutputArray; //!
+  TObjArray *fTowerOutputArray = nullptr; //!
 
-  TObjArray *fEFlowTrackOutputArray; //!
-  TObjArray *fEFlowTowerOutputArray; //!
+  TObjArray *fEFlowTrackOutputArray = nullptr; //!
+  TObjArray *fEFlowTowerOutputArray = nullptr; //!
 
-  TObjArray *fTowerTrackArray; //!
-  TIterator *fItTowerTrackArray; //!
+  TObjArray *fTowerTrackArray = nullptr; //!
+  TIterator *fItTowerTrackArray = nullptr; //!
 
   void FinalizeTower();
   Double_t LogNormal(Double_t mean, Double_t sigma);

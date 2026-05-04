@@ -76,9 +76,7 @@ using namespace fastjet::contrib;
 
 //------------------------------------------------------------------------------
 
-FastJetFinder::FastJetFinder() :
-  fPlugin(0), fRecomb(0), fAxesDef(0), fMeasureDef(0), fNjettinessPlugin(0), fValenciaPlugin(0),
-  fDefinition(0), fAreaDefinition(0), fItInputArray(0)
+FastJetFinder::FastJetFinder()
 {
 }
 
@@ -249,7 +247,7 @@ void FastJetFinder::Init()
     fDefinition = new JetDefinition(fValenciaPlugin);
     break;
   case 10:
-    fDefinition = new JetDefinition(ee_genkt_algorithm,fParameterR,fParameterP);
+    fDefinition = new JetDefinition(ee_genkt_algorithm, fParameterR, fParameterP);
     break;
 
   // kT durham algorithm, 2 options:
@@ -258,7 +256,6 @@ void FastJetFinder::Init()
   case 11:
     fDefinition = new JetDefinition(ee_kt_algorithm);
     break;
-
   }
 
   fPlugin = plugin;
@@ -308,15 +305,15 @@ void FastJetFinder::Finish()
     if(itEstimators->estimator) delete itEstimators->estimator;
   }
 
-  if(fItInputArray) delete fItInputArray;
-  if(fDefinition) delete fDefinition;
-  if(fAreaDefinition) delete fAreaDefinition;
-  if(fPlugin) delete static_cast<JetDefinition::Plugin *>(fPlugin);
-  if(fRecomb) delete static_cast<JetDefinition::Recombiner *>(fRecomb);
-  if(fNjettinessPlugin) delete static_cast<JetDefinition::Plugin *>(fNjettinessPlugin);
-  if(fAxesDef) delete fAxesDef;
-  if(fMeasureDef) delete fMeasureDef;
-  if(fValenciaPlugin) delete static_cast<JetDefinition::Plugin *>(fValenciaPlugin);
+  delete fItInputArray;
+  delete fDefinition;
+  delete fAreaDefinition;
+  delete static_cast<JetDefinition::Plugin *>(fPlugin);
+  delete static_cast<JetDefinition::Recombiner *>(fRecomb);
+  delete fNjettinessPlugin;
+  delete fAxesDef;
+  delete fMeasureDef;
+  delete fValenciaPlugin;
 }
 
 //------------------------------------------------------------------------------
@@ -393,9 +390,9 @@ void FastJetFinder::Process()
     try
     {
       // exclusive dcut mode
-      if (fDCut > 0.0)
+      if(fDCut > 0.0)
       {
-        outputList = sorted_by_pt(sequence->exclusive_jets(fDCut*fDCut));
+        outputList = sorted_by_pt(sequence->exclusive_jets(fDCut * fDCut));
       }
       else
       {
@@ -407,7 +404,7 @@ void FastJetFinder::Process()
     {
       outputList.clear();
     }
-    
+
     excl_ymerge12 = sequence->exclusive_ymerge(1);
     excl_ymerge23 = sequence->exclusive_ymerge(2);
     excl_ymerge34 = sequence->exclusive_ymerge(3);
@@ -443,8 +440,8 @@ void FastJetFinder::Process()
     ncharged = 0;
     nneutrals = 0;
 
-    neutralEnergyFraction =0.;
-    chargedEnergyFraction =0.;
+    neutralEnergyFraction = 0.;
+    chargedEnergyFraction = 0.;
 
     inputList.clear();
     inputList = sequence->constituents(*itOutputList);
@@ -489,8 +486,8 @@ void FastJetFinder::Process()
     candidate->NNeutrals = nneutrals;
     candidate->NCharged = ncharged;
 
-    candidate->NeutralEnergyFraction = (momentum.E() > 0 ) ? neutralEnergyFraction/momentum.E() : 0.0;
-    candidate->ChargedEnergyFraction = (momentum.E() > 0 ) ? chargedEnergyFraction/momentum.E() : 0.0;
+    candidate->NeutralEnergyFraction = (momentum.E() > 0) ? neutralEnergyFraction / momentum.E() : 0.0;
+    candidate->ChargedEnergyFraction = (momentum.E() > 0) ? chargedEnergyFraction / momentum.E() : 0.0;
 
     //for exclusive clustering, access y_n,n+1 as exclusive_ymerge (fNJets);
     candidate->ExclYmerge12 = excl_ymerge12;

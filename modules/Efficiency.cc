@@ -51,8 +51,7 @@ using namespace std;
 
 //------------------------------------------------------------------------------
 
-Efficiency::Efficiency() :
-  fFormula(0), fItInputArray(0)
+Efficiency::Efficiency()
 {
   fFormula = new DelphesFormula;
 }
@@ -61,7 +60,7 @@ Efficiency::Efficiency() :
 
 Efficiency::~Efficiency()
 {
-  if(fFormula) delete fFormula;
+  delete fFormula;
 }
 
 //------------------------------------------------------------------------------
@@ -89,7 +88,7 @@ void Efficiency::Init()
 
 void Efficiency::Finish()
 {
-  if(fItInputArray) delete fItInputArray;
+  delete fItInputArray;
 }
 
 //------------------------------------------------------------------------------
@@ -99,7 +98,6 @@ void Efficiency::Process()
   Candidate *candidate;
   Double_t pt, eta, phi, e;
 
-
   fItInputArray->Reset();
   while((candidate = static_cast<Candidate *>(fItInputArray->Next())))
   {
@@ -108,7 +106,8 @@ void Efficiency::Process()
     eta = candidatePosition.Eta();
     phi = candidatePosition.Phi();
 
-    if (fUseMomentumVector){
+    if(fUseMomentumVector)
+    {
       eta = candidateMomentum.Eta();
       phi = candidateMomentum.Phi();
     }

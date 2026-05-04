@@ -20,9 +20,7 @@ using namespace std;
 using namespace fastjet;
 
 //------------------------------------------------------------------------------
-RunPUPPI::RunPUPPI() :
-  fItTrackInputArray(0),
-  fItNeutralInputArray(0)
+RunPUPPI::RunPUPPI()
 {
 }
 
@@ -147,9 +145,9 @@ void RunPUPPI::Init()
 
 void RunPUPPI::Finish()
 {
-  if(fItTrackInputArray) delete fItTrackInputArray;
-  if(fItNeutralInputArray) delete fItNeutralInputArray;
-  if(fPuppi) delete fPuppi;
+  delete fItTrackInputArray;
+  delete fItNeutralInputArray;
+  delete fPuppi;
 }
 
 //------------------------------------------------------------------------------
@@ -177,7 +175,6 @@ void RunPUPPI::Process()
   // Fill input particles for puppi
   std::vector<RecoObj> puppiInputVector;
   puppiInputVector.clear();
-  int lNBad = 0;
   // Loop on charge track candidate
   while((candidate = static_cast<Candidate *>(fItTrackInputArray->Next())))
   {
@@ -191,7 +188,6 @@ void RunPUPPI::Process()
     //if(fApplyNoLep && TMath::Abs(candidate->PID) == 13) continue;
     if(candidate->IsRecoPU and candidate->Charge != 0)
     { // if it comes fromPU vertexes after the resolution smearing and the dZ matching within resolution
-      lNBad++;
       curRecoObj.id = 2;
       curRecoObj.vtxId = 0.7 * (fPVInputArray->GetEntries()); //Hack apply reco vtx efficiency of 70% for calibration
       if(TMath::Abs(candidate->PID) == 11)

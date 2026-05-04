@@ -4,6 +4,10 @@ project(Delphes)
 
 add_compile_options(-fPIC -Wall -D_FILE_OFFSET_BITS=64 -DDROP_CGAL)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "" FORCE)
+endif()
+
 # Set the runtime path of the libraries by default but allow to switch it off:
 option(SET_RPATH "Set runtime path of the ${project} libraries?" ON)
 IF(SET_RPATH)

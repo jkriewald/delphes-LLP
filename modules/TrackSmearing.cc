@@ -35,8 +35,7 @@ using namespace std;
 
 //------------------------------------------------------------------------------
 
-TrackSmearing::TrackSmearing() :
-  fD0Formula(0), fDZFormula(0), fPFormula(0), fCtgThetaFormula(0), fPhiFormula(0), fItInputArray(0)
+TrackSmearing::TrackSmearing()
 {
   fD0Formula = new DelphesFormula;
   fDZFormula = new DelphesFormula;
@@ -49,11 +48,11 @@ TrackSmearing::TrackSmearing() :
 
 TrackSmearing::~TrackSmearing()
 {
-  if(fD0Formula) delete fD0Formula;
-  if(fDZFormula) delete fDZFormula;
-  if(fPFormula) delete fPFormula;
-  if(fCtgThetaFormula) delete fCtgThetaFormula;
-  if(fPhiFormula) delete fPhiFormula;
+  delete fD0Formula;
+  delete fDZFormula;
+  delete fPFormula;
+  delete fCtgThetaFormula;
+  delete fPhiFormula;
 }
 
 //------------------------------------------------------------------------------
@@ -147,14 +146,13 @@ void TrackSmearing::Init()
 
 void TrackSmearing::Finish()
 {
-  if(fItInputArray) delete fItInputArray;
+  delete fItInputArray;
 }
 
 //------------------------------------------------------------------------------
 
 void TrackSmearing::Process()
 {
-  Int_t iCandidate = 0;
   TLorentzVector beamSpotPosition;
   Candidate *candidate, *mother;
   Double_t pt, eta, e, m, d0, d0Error, trueD0, dz, dzError, trueDZ, p, pError, trueP, ctgTheta, ctgThetaError, trueCtgTheta, phi, phiError, truePhi;
@@ -332,7 +330,7 @@ void TrackSmearing::Process()
     candidate->Momentum.SetPx(p * TMath::Cos(phi) * TMath::Sin(theta));
     candidate->Momentum.SetPy(p * TMath::Sin(phi) * TMath::Sin(theta));
     candidate->Momentum.SetPz(p * TMath::Cos(theta));
-    candidate->Momentum.SetE(TMath::Sqrt(p*p + m*m));
+    candidate->Momentum.SetE(TMath::Sqrt(p * p + m * m));
     candidate->PT = candidate->Momentum.Pt();
 
     x = position.X();
@@ -397,8 +395,6 @@ void TrackSmearing::Process()
 
     candidate->AddCandidate(mother);
     fOutputArray->Add(candidate);
-
-    iCandidate++;
   }
 }
 

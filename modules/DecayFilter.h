@@ -51,12 +51,11 @@ public:
   void Finish();
 
 private:
+  TIterator *fItInputArray = nullptr; //!
 
-  TIterator *fItInputArray; //!
+  const TObjArray *fInputArray = nullptr; //!
 
-  const TObjArray *fInputArray; //!
-
-  TObjArray *fOutputArray; //!
+  TObjArray *fOutputArray = nullptr; //!
 
   ClassDef(DecayFilter, 1)
 };

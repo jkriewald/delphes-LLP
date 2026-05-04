@@ -73,7 +73,6 @@ private:
   void ProcessDisplacedVertices(ExRootTreeBranch *branch, TObjArray *array);
   void ProcessLLPCandidates(ExRootTreeBranch *branch, TObjArray *array);
 
-
 #if !defined(__CINT__) && !defined(__CLING__)
   typedef void (TreeWriter::*TProcessMethod)(ExRootTreeBranch *, TObjArray *); //!
 

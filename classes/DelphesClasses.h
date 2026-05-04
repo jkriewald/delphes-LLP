@@ -730,6 +730,10 @@ public:
 
   Int_t Charge; // track charge
 
+  Int_t IsPU; // 0 or 1 for particles from pile-up interactions
+  Int_t IsRecoPU; // 0 or 1 for reconstructed particles from pile-up
+  Float_t HardEnergyFraction; // fraction of hard scattering vs PU energy in the particle flow candidate
+
   Float_t P; // track momentum
   Float_t PT; // track transverse momentum
   Float_t Eta; // track pseudorapidity
@@ -782,7 +786,7 @@ public:
   Float_t ErrorD0CtgTheta;
   Float_t ErrorPhiC;
   Float_t ErrorPhiDZ;
-  Float_t ErrorPhiCtgTheta ;
+  Float_t ErrorPhiCtgTheta;
   Float_t ErrorCDZ;
   Float_t ErrorCCtgTheta;
   Float_t ErrorDZCtgTheta;
@@ -797,7 +801,7 @@ public:
   TLorentzVector P4() const;
   TMatrixDSym CovarianceMatrix() const;
 
-  ClassDef(Track, 3)
+  ClassDef(Track, 4)
 };
 
 //---------------------------------------------------------------------------
@@ -824,6 +828,10 @@ public:
 
   Float_t Edges[4]; // calorimeter tower edges
 
+  Int_t IsPU; // 0 or 1 for particles from pile-up interactions
+  Int_t IsRecoPU; // 0 or 1 for reconstructed particles from pile-up
+  Float_t HardEnergyFraction; // fraction of hard scattering vs PU energy
+
   TRefArray Particles; // references to generated particles
 
   static CompBase *fgCompare; //!
@@ -831,7 +839,7 @@ public:
 
   TLorentzVector P4() const;
 
-  ClassDef(Tower, 4)
+  ClassDef(Tower, 5)
 };
 
 //---------------------------------------------------------------------------
@@ -843,6 +851,10 @@ public:
   Int_t PID; // HEP ID number
 
   Int_t Charge; // track charge
+
+  Int_t IsPU; // 0 or 1 for particles from pile-up interactions
+  Int_t IsRecoPU; // 0 or 1 for reconstructed particles from pile-up
+  Float_t HardEnergyFraction; // fraction of hard scattering vs PU energy in the particle flow candidate
 
   Float_t E; // reconstructed energy [GeV]
   Float_t P; // track momentum
@@ -897,7 +909,7 @@ public:
   Float_t ErrorD0CtgTheta;
   Float_t ErrorPhiC;
   Float_t ErrorPhiDZ;
-  Float_t ErrorPhiCtgTheta ;
+  Float_t ErrorPhiCtgTheta;
   Float_t ErrorCDZ;
   Float_t ErrorCCtgTheta;
   Float_t ErrorDZCtgTheta;
@@ -920,8 +932,7 @@ public:
 
   TRefArray Particles; // references to generated particles
 
-  ClassDef(ParticleFlowCandidate, 3)
-
+  ClassDef(ParticleFlowCandidate, 4)
 };
 
 //---------------------------------------------------------------------------

@@ -50,17 +50,16 @@
 using namespace std;
 //------------------------------------------------------------------------------
 
-TimeSmearing::TimeSmearing() :
-  fResolutionFormula(0), fItInputArray(0)
+TimeSmearing::TimeSmearing()
 {
-	fResolutionFormula = new DelphesFormula;
+  fResolutionFormula = new DelphesFormula;
 }
 
 //------------------------------------------------------------------------------
 
 TimeSmearing::~TimeSmearing()
 {
-	if(fResolutionFormula) delete fResolutionFormula;
+  delete fResolutionFormula;
 }
 
 //------------------------------------------------------------------------------
@@ -76,7 +75,6 @@ void TimeSmearing::Init()
   fInputArray = ImportArray(GetString("InputArray", "MuonMomentumSmearing/muons"));
   fItInputArray = fInputArray->MakeIterator();
 
-
   // create output array
   fOutputArray = ExportArray(GetString("OutputArray", "tracks"));
 }
@@ -85,7 +83,7 @@ void TimeSmearing::Init()
 
 void TimeSmearing::Finish()
 {
-  if(fItInputArray) delete fItInputArray;
+  delete fItInputArray;
 }
 
 //------------------------------------------------------------------------------

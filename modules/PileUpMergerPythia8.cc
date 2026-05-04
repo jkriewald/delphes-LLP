@@ -54,8 +54,7 @@ using namespace std;
 
 //------------------------------------------------------------------------------
 
-PileUpMergerPythia8::PileUpMergerPythia8() :
-  fFunction(0), fPythia(0), fItInputArray(0)
+PileUpMergerPythia8::PileUpMergerPythia8()
 {
   fFunction = new DelphesTF2;
 }
@@ -107,7 +106,7 @@ void PileUpMergerPythia8::Init()
 
 void PileUpMergerPythia8::Finish()
 {
-  if(fPythia) delete fPythia;
+  delete fPythia;
 }
 
 //------------------------------------------------------------------------------
@@ -177,8 +176,7 @@ void PileUpMergerPythia8::Process()
 
   for(event = 0; event < numberOfEvents; ++event)
   {
-    while(!fPythia->next())
-      ;
+    while(!fPythia->next());
 
     // --- Pile-up vertex smearing
 

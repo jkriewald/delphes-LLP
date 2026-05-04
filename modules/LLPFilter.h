@@ -21,7 +21,6 @@
 #ifndef LLPFilter_h
 #define LLPFilter_h
 
-
 /** \class LLPFilter
  *
  *  Filter LLPs with particular PDG ID/status and calculate the EM and hadronic energy of LLP based on decay particles
@@ -67,14 +66,14 @@ private:
 
   std::vector<Int_t> fPdgCodes;
 
-  TIterator *fItInputArray; //!
+  TIterator *fItInputArray = nullptr; //!
 
-  const TObjArray *fInputArray; //!
+  const TObjArray *fInputArray = nullptr; //!
 
-  TIterator *fItParticleInputArray;
-  const TObjArray *fParticleInputArray;
+  TIterator *fItParticleInputArray = nullptr;
+  const TObjArray *fParticleInputArray = nullptr;
 
-  TObjArray *fOutputArray; //!
+  TObjArray *fOutputArray = nullptr; //!
 
   ClassDef(LLPFilter, 1)
 };

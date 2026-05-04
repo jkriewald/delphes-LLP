@@ -47,14 +47,14 @@ public:
 
   DelphesFactory *GetFactory() const { return fFactory; }
 
-  void Clear();
+  void Clear(Option_t *option = "");
 
   virtual void Init();
   virtual void Process();
   virtual void Finish();
 
 private:
-  DelphesFactory *fFactory;
+  DelphesFactory *fFactory = nullptr;
 
   ClassDef(Delphes, 1)
 };

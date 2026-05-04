@@ -100,9 +100,7 @@ Int_t TauTaggingPartonClassifier::GetCategory(TObject *object)
 
 //------------------------------------------------------------------------------
 
-TauTagging::TauTagging() :
-  fClassifier(0), fFilter(0),
-  fItPartonInputArray(0), fItJetInputArray(0)
+TauTagging::TauTagging()
 {
 }
 
@@ -172,10 +170,10 @@ void TauTagging::Finish()
   map<Int_t, DelphesFormula *>::iterator itEfficiencyMap;
   DelphesFormula *formula;
 
-  if(fFilter) delete fFilter;
-  if(fClassifier) delete fClassifier;
-  if(fItJetInputArray) delete fItJetInputArray;
-  if(fItPartonInputArray) delete fItPartonInputArray;
+  delete fFilter;
+  delete fClassifier;
+  delete fItJetInputArray;
+  delete fItPartonInputArray;
 
   for(itEfficiencyMap = fEfficiencyMap.begin(); itEfficiencyMap != fEfficiencyMap.end(); ++itEfficiencyMap)
   {
@@ -246,7 +244,7 @@ void TauTagging::Process()
 
     // fake electrons and muons
 
-    if (pdgCode == 0)
+    if(pdgCode == 0)
     {
 
       Double_t drMin = fDeltaR;
@@ -255,17 +253,17 @@ void TauTagging::Process()
       {
         if(TMath::Abs(part->PID) == 11 || TMath::Abs(part->PID) == 13)
         {
-            tauMomentum = part->Momentum;
-            if (tauMomentum.Pt() < fClassifier->fPTMin) continue;
-            if (TMath::Abs(tauMomentum.Eta()) > fClassifier->fEtaMax) continue;
+          tauMomentum = part->Momentum;
+          if(tauMomentum.Pt() < fClassifier->fPTMin) continue;
+          if(TMath::Abs(tauMomentum.Eta()) > fClassifier->fEtaMax) continue;
 
-            Double_t dr = jetMomentum.DeltaR(tauMomentum);
-            if( dr < drMin)
-            {
-               drMin = dr;
-               pdgCode = TMath::Abs(part->PID);
-               charge = part->Charge;
-            }
+          Double_t dr = jetMomentum.DeltaR(tauMomentum);
+          if(dr < drMin)
+          {
+            drMin = dr;
+            pdgCode = TMath::Abs(part->PID);
+            charge = part->Charge;
+          }
         }
       }
     }

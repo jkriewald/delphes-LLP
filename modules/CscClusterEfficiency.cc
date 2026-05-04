@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- /** \class CscClusterEfficiency
+/** \class CscClusterEfficiency
   *
   *  This module is specific to the CMS paper searching for neutral LLPs in the CMS endcap muon detectors: https://arxiv.org/abs/2107.04838
   *  It is implemented based on the ClusterEfficiency parameterization function provided in the HEPData entry of the paper: https://www.hepdata.net/record/104408
@@ -28,8 +28,8 @@
 #include "modules/CscClusterEfficiency.h"
 
 #include "classes/DelphesClasses.h"
-#include "classes/DelphesFactory.h"
 #include "classes/DelphesCscClusterFormula.h"
+#include "classes/DelphesFactory.h"
 
 #include "ExRootAnalysis/ExRootClassifier.h"
 #include "ExRootAnalysis/ExRootFilter.h"
@@ -52,8 +52,7 @@ using namespace std;
 
 //------------------------------------------------------------------------------
 
-CscClusterEfficiency::CscClusterEfficiency() :
-  fFormula(0), fItInputArray(0)
+CscClusterEfficiency::CscClusterEfficiency()
 {
   fFormula = new DelphesCscClusterFormula;
 }
@@ -62,7 +61,7 @@ CscClusterEfficiency::CscClusterEfficiency() :
 
 CscClusterEfficiency::~CscClusterEfficiency()
 {
-  if(fFormula) delete fFormula;
+  delete fFormula;
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +85,7 @@ void CscClusterEfficiency::Init()
 
 void CscClusterEfficiency::Finish()
 {
-  if(fItInputArray) delete fItInputArray;
+  delete fItInputArray;
 }
 
 //------------------------------------------------------------------------------
@@ -101,12 +100,11 @@ void CscClusterEfficiency::Process()
   {
     const TLorentzVector &candidateDecayPosition = candidate->DecayPosition;
     decayZ = abs(candidateDecayPosition.Z());
-    decayR = sqrt(pow(candidateDecayPosition.X(),2)+pow(candidateDecayPosition.Y(),2));
+    decayR = sqrt(pow(candidateDecayPosition.X(), 2) + pow(candidateDecayPosition.Y(), 2));
     Ehad = candidate->Ehad;
     Eem = candidate->Eem;
     // apply an efficency formula
     if(gRandom->Uniform() > fFormula->Eval(decayR, decayZ, Ehad, Eem)) continue;
-
 
     fOutputArray->Add(candidate);
   }

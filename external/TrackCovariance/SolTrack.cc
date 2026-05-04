@@ -1,8 +1,8 @@
-
 #include "SolGeom.h"
 #include "SolTrack.h"
 #include <TString.h>
 #include <TMath.h>
+#include <TRandom.h>
 #include <TMatrixD.h>
 #include <TMatrixDSym.h>
 #include <TDecompChol.h>
@@ -31,13 +31,15 @@ SolTrack::SolTrack(Double_t *x, Double_t *p, SolGeom *G)
 	fpar[2] = gPar(2);
 	fpar[3] = gPar(3);
 	fpar[4] = gPar(4);
+	// Number of measurements
+	//fNmeasure = nMeas();	// Nr. of measurements
 	//cout << "SolTrack:: C = " << C << ", fpar[2] = " << fpar[2] << endl;
 	//
 	// Init covariances
 	//
 	fCov.ResizeTo(5, 5);
 }
-SolTrack::SolTrack(TVector3 x, TVector3 p, SolGeom* G)
+SolTrack::SolTrack(TVector3 x, TVector3 p, Double_t Charge, SolGeom* G)
 {
 	// set B field
 	fG = G;					// Store geometry
@@ -47,7 +49,6 @@ SolTrack::SolTrack(TVector3 x, TVector3 p, SolGeom* G)
 	fp[0] = p(0); fp[1] = p(1); fp[2] = p(2);
 	fx[0] = x(0); fx[1] = x(1); fx[2] = x(2);
 	// Get generated parameters
-	Double_t Charge = 1.0;						// Don't worry about charge for now
 	TVectorD gPar = XPtoPar(x, p, Charge);
 	// Store parameters
 	fpar[0] = gPar(0);
@@ -55,6 +56,38 @@ SolTrack::SolTrack(TVector3 x, TVector3 p, SolGeom* G)
 	fpar[2] = gPar(2);
 	fpar[3] = gPar(3);
 	fpar[4] = gPar(4);
+	// Number of measurements
+	//fNmeasure = nMeas();	// Nr. of measurements
+	//std::cout<<"SolfTrack: track parameters: D, phi0, C, z0, cot"; gPar.Print();
+	//cout << "SolTrack:: C = " << C << ", fpar[2] = " << fpar[2] << endl;
+	//
+	// Init covariances
+	//
+	fCov.ResizeTo(5, 5);
+}
+SolTrack::SolTrack(TVector3 x, TVector3 p, SolGeom* G)
+{
+	// Ignore charge. For backward compatibility.
+	//
+	Double_t Charge = 1.0;
+	// set B field
+	fG = G;					// Store geometry
+	Double_t B = G->B();
+	SetB(B);
+	// Store momentum
+	fp[0] = p(0); fp[1] = p(1); fp[2] = p(2);
+	fx[0] = x(0); fx[1] = x(1); fx[2] = x(2);
+	// Get generated parameters
+	TVectorD gPar = XPtoPar(x, p, Charge);
+	// Store parameters
+	fpar[0] = gPar(0);
+	fpar[1] = gPar(1);
+	fpar[2] = gPar(2);
+	fpar[3] = gPar(3);
+	fpar[4] = gPar(4);
+	// Number of measurements
+	//fNmeasure = nMeas();	// Nr. of measurements
+	//std::cout<<"SolfTrack: track parameters: D, phi0, C, z0, cot"; gPar.Print();
 	//cout << "SolTrack:: C = " << C << ", fpar[2] = " << fpar[2] << endl;
 	//
 	// Init covariances
@@ -81,6 +114,8 @@ SolTrack::SolTrack(Double_t D, Double_t phi0, Double_t C, Double_t z0, Double_t 
 	//
 	fp[0] = px; fp[1] = py; fp[2] = pz;
 	fx[0] = -D*TMath::Sin(phi0); fx[1] = D*TMath::Cos(phi0);  fx[2] = z0;
+	// Number of measurements
+	// fNmeasure = nMeas();	// Nr. of measurements
 	//
 	// Init covariances
 	//
@@ -104,6 +139,7 @@ Bool_t SolTrack::HitLayer(Int_t il, Double_t &R, Double_t &phi, Double_t &zz)
 	R = 0; phi = 0; zz = 0;
 	Bool_t val = kFALSE;
 	Double_t Rmin = TMath::Sqrt(fx[0] * fx[0] + fx[1] * fx[1]); // Smallest track radius
+	//std::cout<<"Soltrack::HitLayer: Rmin = "<<Rmin<<", D = "<<D()<<std::endl;
 	if (Rmin < TMath::Abs(Di)) return val;
 	//
 	Double_t ArgzMin = Ci * TMath::Sqrt((Rmin * Rmin - Di * Di) / (1 + 2 * Ci * Di));
@@ -113,12 +149,16 @@ Bool_t SolTrack::HitLayer(Int_t il, Double_t &R, Double_t &phi, Double_t &zz)
 	{
 		R = fG->lPos(il);
 		Double_t argph = (Ci*R + (1 + Ci*Di)*Di / R) / (1. + 2.*Ci*Di);
+		//std::cout<<"Soltrack::HitLayer: R = "<<R<<", argph = "<<argph<<std::endl;
 		if (TMath::Abs(argph) < 1.0 && R > Rmin)
 		{
 			Double_t argz = Ci*TMath::Sqrt((R*R - Di*Di) / (1 + 2 * Ci*Di));
+			//std::cout<<"Soltrack::HitLayer: argz = "<<argz<<std::endl;
 			if (TMath::Abs(argz) < 1.0)
 			{
 				zz = z0i + cti*TMath::ASin(argz) / Ci;
+				//std::cout<<"Soltrack::HitLayer: zz = "<<zz<<
+				//", zmin="<<fG->lxMin(il)<<", zmax= "<<fG->lxMax(il)<<std::endl;
 				if (zz > fG->lxMin(il) && zz < fG->lxMax(il))
 				{
 					phi = phi0i + TMath::ASin(argph);
@@ -816,7 +856,7 @@ void SolTrack::CovCalc(Bool_t Res, Bool_t MS)
 		Double_t mass = 0.13957021;				// Assume pion mass
 		Double_t beta = p()/TMath::Sqrt(mass*mass+p()*p());
 		thms[ii] = 0.0136*TMath::Sqrt(Rlf)*
-			   (1.0 + 0.038*TMath::Log(Rlf)/(beta*beta)) /(beta*p());	// MS angle
+			   (1.0 + 0.038*TMath::Log(Rlf/(beta*beta))) /(beta*p());	// MS angle
 		//
 		// Parameter covariance induced by MS in this layer
 		//
@@ -838,6 +878,7 @@ void SolTrack::CovCalc(Bool_t Res, Bool_t MS)
 		}
 		else{
 			thms[ii] = 0.;
+			Caa[ii] = new TMatrixDSym(5);
 			Caa[ii]->Zero();
 		}
 		//
@@ -1079,6 +1120,7 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 	//		- Upper side measurement is phi
 	//		- Lower side measurement is R
 	// 
+	//std::cout<<"Entering KalmanCov"<<std::endl;
 	//***********************************
 	// Start initialization stage *******
 	//***********************************
@@ -1113,7 +1155,7 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 	// Order hit list by increasing phase
 	//
 	Int_t    *hord = new Int_t[Nhit];		// hi+t order by increasing phase
-	TMath::Sort(Nhit, adhh, hord, kFALSE);		// Order by increasing phase
+	TMath::Sort(Nhit, adhh, hord, kFALSE);	// Order by increasing phase
 	Double_t *zh = new Double_t[Nhit];		// ordered z of hit
 	Double_t *rh = new Double_t[Nhit];		// ordered r of hit
 	Double_t *ph = new Double_t[Nhit];		// ordered phi of hit
@@ -1133,7 +1175,7 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 	//
 	Double_t *thms = new Double_t[Nhit];		// Scattering angles/plane
 	//
-	Int_t mLast = 0;				// Last measurement layer
+	Int_t mLast = -1;				// Last measurement layer
 	for (Int_t ii = 0; ii < Nhit; ii++)		// Hit layer loop
 	{
 		
@@ -1162,11 +1204,11 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 		Double_t Rlf = fG->lTh(i) / (corr*fG->lX0(i));	// Rad. length fraction
 		Double_t beta = p()/TMath::Sqrt(mass*mass+p()*p());
 		thms[ii] = 0.0136*TMath::Sqrt(Rlf)*
-			   (1.0 + 0.038*TMath::Log(Rlf)/(beta*beta)) /(beta*p());	// MS angle
+			   (1.0 + 0.038*TMath::Log(Rlf/(beta*beta))) /(beta*p());	// MS angle
 		if (!MS)thms[ii] = 0;
 	}
 	//std::cout<<"p= "<<p()<<", pt = "<<pt()<<", theta = "<<180.*TMath::ATan(1./ct())/TMath::Pi()<<
-	//", mLast = "<<mLast<<std::endl;
+	//", mLast = "<<mLast<<", Nhit= "<<Nhit<<std::endl;
 	// Cleanup
 	delete [] ihh;
 	delete [] rhh;
@@ -1175,6 +1217,8 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 	delete [] dhh;
 	delete [] adhh;
 	delete [] hord;
+	//
+	//std::cout<<"KalmanCov: End initialization stage"<<std::endl;
 	// 
 	//***********************************
 	// End initialization stage *********
@@ -1186,21 +1230,30 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 	//
 	// Starting large covariance	
 	Double_t CovDiag[5] = { 10.,10.,10., 10.,10.};
-	for(Int_t i=0; i<5; i++) fCov(i,i)= CovDiag[i]; 
+	fCov.Zero();
+	for(Int_t i=0; i<5; i++){
+		fCov(i,i)= CovDiag[i];
+	}
 	//
 	// Loop on all layers starting with last measurement layer
+	fNmeasure = 0;
 	for(Int_t ii=mLast; ii>=0; ii--){
 		//
 		// Process measurement layers
 		//
 		Int_t i = ih[ii];			// True layer number
-		//std::cout<<"Main loop: ii= "<<ii<<", true layer = "<<i<<std::endl;
-		if (fG->isMeasure(i)){			// Measurement layer
+		//std::cout<<"Main loop: ii= "<<ii<<", true layer = "<<i<<", Label: "<<fG->lLabl(i)<<std::endl;
+		//std::cout<<"Specific phase dh["<<ii<<"] = "<<dh[ii]<<std::endl;
+		Double_t Eff = fG->GetEfficiency(i);	// Layer efficiency
+		Double_t Rnd = gRandom->Rndm();
+		if (fG->isMeasure(i) && Rnd<Eff){			// Measurement layer
+			//std::cout<<"Track pt= "<<pt()<<", Layer "<<i<<", Efficiency "<<100*Eff<<"%"<<std::endl;
 			TMatrixDSym CovInv = RegInv(fCov);
 			Double_t Ri = rh[ii];
 			Double_t zi = zh[ii];
 			Int_t ityp  = fG->lTyp(i);	// Layer type Barrel or Z
 			Int_t nmeai = fG->lND(i);	// # measurements in layer
+			fNmeasure += nmeai;		// Increment number of measurements
 			Double_t stri = 0;		// Stereo angle
 			Double_t sig = 0;		// Resolution
 			Double_t csa = 0;		// Cosine stereo angle
@@ -1228,7 +1281,7 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 						stri = fG->lStL(i);		// Stereo angle
 						sig  = fG->lSgL(i);		// Resolution
 					}
-					if(!Res)sig = 1.e-6;	// Set to 1 micron for perfect resolution
+					if(!Res)sig = 2.e-7;	// Set to 1 micron for perfect resolution
 					//
 					csa = TMath::Cos(stri);
 					ssa = TMath::Sin(stri);
@@ -1263,7 +1316,7 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 						//
 						Rm = dRRz;
 					}
-					if(!Res)sig = 1.e-7;	// Set to .1 micron for perfect resolution
+					if(!Res)sig = 2.0e-7;	// Set to .1 micron for perfect resolution
 					//
 					// Update inverted covariance
 					TMatrixDSym Mres(5); Mres.Zero();
@@ -1276,29 +1329,28 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 		}
 		//
 		// Add multiple scattering contribution for all layers
-		//
-		// Position/momentum at layer
-		TVector3 Xpos = Xtrack(tPar, dh[ii]); 
-		TVector3 Ptot = Ptrack(tPar, dh[ii]);
-		//
-		Double_t th2 = thms[ii]*thms[ii];
-		TMatrixDSym Mph(3);	// Transverse plane multiple scattering matrix
-		TVectorD dMSrph = DpDthetaRphi(dh[ii]);
-		Mph.Rank1Update(dMSrph,th2);
-		//
-		TMatrixDSym Mth(3);	// Longitudinal plane multiple scattering matrix
-		TVectorD dMSlng = DpDthetaLng(dh[ii]);
-		Mth.Rank1Update(dMSlng,th2);
-		TMatrixDSym MS = Mph+Mth;
-		//
-		// Get derivatives of track parameters wrt momenta
-		//
-		TMatrixD DparP = DparDp(Xpos, Ptot);
-		TMatrixDSym CovMS = MS.Similarity(DparP);
-		//
-		// Update track covariance
-		fCov += CovMS;
+		if(MS){
+			Double_t th2 = thms[ii]*thms[ii];
+			TVector3 Xpos = Xtrack(tPar, dh[ii]);
+			TVector3 Ptot = Ptrack(tPar, dh[ii]);
+			TMatrixD DparP = DparDp(Xpos, Ptot);
+			TVectorD dMSrph = DpDthetaRphi(dh[ii]);  // Transverse plane multiple scattering vector
+			TVectorD dAlfR = DparP*dMSrph;
+			TMatrixDSym CaR(5);
+			CaR.Rank1Update(dAlfR,th2);	// Transverse plane MS component
+			//
+			TVectorD dMSlng = DpDthetaLng(dh[ii]);  // Longitudinal plane multiple scattering vector
+			TVectorD dAlfL = DparP*dMSlng;
+			TMatrixDSym CaL(5);
+			CaL.Rank1Update(dAlfL,th2);	// Longitudinal plane MS component
+			TMatrixDSym CovMS = CaR + CaL;
+			//
+			// Update track covariance
+			fCov += CovMS;
+			//cout<<"pt= "<<Ptot.Pt()<<", cot= "<<Ptot.Pz()/Ptot.Pt()<<", fCov:"; fCov.Print();
+		}
 	}
+	//std::cout<<"Covariance matrix:"; fCov.Print();
 	//
 	//*********************************************
 	// Check covariance matrix ********************
@@ -1318,10 +1370,319 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 		for(Int_t i=0;i<5;i++){
 			for(Int_t j=0;j<5;j++)fCov(i,j) = NormCovRec(i,j)*diag(i)*diag(j);
 		}
-		std::cout<<"New fCov:"; fCov.Print();
-
+		//std::cout<<"New fCov:"; fCov.Print();
 	}
-	//else std::cout<<"Kalman calculation successful"<<std::endl;
+	//
+	// Cleanup
+	delete [] zh;
+	delete [] rh;
+	delete [] ph;
+	delete [] dh;
+	delete [] ih;
+	delete [] thms;
+}
+//
+//********************************************************
+//********************************************************
+// True Kalman implementation
+//********************************************************
+//********************************************************
+//
+// Covariance matrix estimation with Kalman filter
+//
+void SolTrack::KalmanCovT(Bool_t Res, Bool_t MS, Double_t mass)
+{
+	//
+	//
+	// Input flags:
+	//				Res = .TRUE. turn on resolution effects/Use standard resolutions
+	//					  .FALSE. set all resolutions to 0
+	//				MS  = .TRUE. include Multiple Scattering
+	// Input mass:			set to pion mass if no argument
+	//
+	//
+	// Assumptions:
+	// 1. Measurement layers can do one or two measurements
+	// 2. On disks at constant z:
+	//		- Upper side measurement is phi
+	//		- Lower side measurement is R
+	//
+	//std::cout<<"Entering KalmanCov"<<std::endl;
+	//***********************************
+	// Start initialization stage *******
+	//***********************************
+	//
+	TVectorD tPar(5, fpar);
+	//
+	// Fill list of layers hit
+	//
+	Int_t Nhit = nHit();				// Total number of layers hit
+	Double_t *zhh = new Double_t[Nhit];		// z of hit
+	Double_t *rhh = new Double_t[Nhit];		// r of hit
+	Double_t *phh = new Double_t[Nhit];		// phi of hit
+	Double_t *dhh = new Double_t[Nhit];		// Phase of hit
+	Double_t *adhh = new Double_t[Nhit];	// Absolute value of phase
+	Int_t    *ihh = new Int_t[Nhit];		// true index of layer
+	//** added protection for derivative explosion
+	Double_t CosMin = TMath::Sin(TMath::Pi() / 9.);	//** Protect for derivative explosion
+	Double_t* cs = new Double_t[Nhit];		//** Cosine of angle with normal in transverse plane
+	//**
+	Int_t mTot;					// Number of measurement layers hit
+	//
+	mTot = HitList(ihh, rhh, phh, zhh);		// hit layer list
+	// Store phases
+	for(Int_t i = 0; i < Nhit; i++){
+		if(TMath::Abs(ct()) > 1.0e-3) dhh[i] = 2*C()*(zhh[i]-z0())/ct();
+		else dhh[i] = 2*TMath::ASin(C()*TMath::Sqrt((rhh[i]*rhh[i]-D()*D())/
+		(1.+2.*C()*D())));
+
+		adhh[i] = TMath::Abs(dhh[i]);
+	}
+	//
+	// Order hit list by increasing phase
+	//
+	Int_t    *hord = new Int_t[Nhit];		// hi+t order by increasing phase
+	TMath::Sort(Nhit, adhh, hord, kFALSE);	// Order by increasing phase
+	Double_t *zh = new Double_t[Nhit];		// ordered z of hit
+	Double_t *rh = new Double_t[Nhit];		// ordered r of hit
+	Double_t *ph = new Double_t[Nhit];		// ordered phi of hit
+	Double_t *dh = new Double_t[Nhit];		// ordered phase of hit
+	Int_t    *ih = new Int_t[Nhit];			// ordered true index of layer
+	for (Int_t i = 0; i < Nhit; i++)
+	{
+		Int_t il = hord[i];			// Hit layer numbering
+		zh[i] = zhh[il];
+		rh[i] = rhh[il];
+		ph[i] = phh[il];
+		dh[i] = dhh[il];
+		ih[i] = ihh[il];
+	}
+	//
+	// Store multiple scattering angles
+	//
+	Double_t *thms = new Double_t[Nhit];		// Scattering angles/plane
+	//
+	Int_t mLast = -1;				// Last measurement layer
+	for (Int_t ii = 0; ii < Nhit; ii++)		// Hit layer loop
+	{
+
+		Int_t i = ih[ii];			// True layer number
+		if (fG->isMeasure(i)) mLast = ii;
+		// Layer normals
+		Double_t nx = TMath::Cos(ph[ii]);	// Barrel layer normal
+		Double_t ny = TMath::Sin(ph[ii]);
+		Double_t nz = 0.0;
+		//
+		if (fG->lTyp(i) == 2)			// this is Z layer
+		{
+			nx = 0.0;
+			ny = 0.0;
+			nz = 1.0;
+		}
+		// Momenta at layer
+		Double_t pxi = pt()*TMath::Cos(dh[ii]+phi0());
+		Double_t pyi = pt()*TMath::Sin(dh[ii]+phi0());
+		Double_t pzi = pt()*ct();
+		//
+		cs[ii] = TMath::Abs((pxi * nx + pyi * ny) / pt());
+		//
+		// Store multiple scattering angles
+		Double_t corr = TMath::Abs(pxi*nx + pyi * ny + pzi * nz) / p();
+		Double_t Rlf = fG->lTh(i) / (corr*fG->lX0(i));	// Rad. length fraction
+		Double_t beta = p()/TMath::Sqrt(mass*mass+p()*p());
+		thms[ii] = 0.0136*TMath::Sqrt(Rlf)*
+			   (1.0 + 0.038*TMath::Log(Rlf/(beta*beta))) /(beta*p());	// MS angle
+		if (!MS)thms[ii] = 0;
+	}
+	//std::cout<<"p= "<<p()<<", pt = "<<pt()<<", theta = "<<180.*TMath::ATan(1./ct())/TMath::Pi()<<
+	//", mLast = "<<mLast<<", Nhit= "<<Nhit<<std::endl;
+	// Cleanup
+	delete [] ihh;
+	delete [] rhh;
+	delete [] phh;
+	delete [] zhh;
+	delete [] dhh;
+	delete [] adhh;
+	delete [] hord;
+	//
+	//std::cout<<"KalmanCov: End initialization stage"<<std::endl;
+	//
+	//***********************************
+	// End initialization stage *********
+	//***********************************
+	//
+	//***********************************
+	// Covariance building stage ********
+	//***********************************
+	//
+	// Starting large covariance
+	Double_t CovDiag[5] = { 10.,10.,10., 10.,10.};
+	fCov.Zero();
+	for(Int_t i=0; i<5; i++){
+		fCov(i,i)= CovDiag[i];
+	}
+	//
+	// Loop on all layers starting with last measurement layer
+	fNmeasure = 0;
+	for(Int_t ii=mLast; ii>=0; ii--){
+		//
+		// Multiple scattering contribution for all layers
+		TMatrixDSym Qkm1(5);
+		if(MS){
+			Double_t th2 = thms[ii]*thms[ii];
+			TVector3 Xpos = Xtrack(tPar, dh[ii]);
+			TVector3 Ptot = Ptrack(tPar, dh[ii]);
+			TMatrixD DparP = DparDp(Xpos, Ptot);
+			TVectorD dMSrph = DpDthetaRphi(dh[ii]);  // Transverse plane multiple scattering vector
+			TVectorD dAlfR = DparP*dMSrph;
+			TMatrixDSym CaR(5);
+			CaR.Rank1Update(dAlfR,th2);	// Transverse plane MS component
+			//
+			TVectorD dMSlng = DpDthetaLng(dh[ii]);  // Longitudinal plane multiple scattering vector
+			TVectorD dAlfL = DparP*dMSlng;
+			TMatrixDSym CaL(5);
+			CaL.Rank1Update(dAlfL,th2);	// Longitudinal plane MS component
+			Qkm1 = CaR + CaL;
+		}
+		//
+		// Process measurement layers
+		//
+		Int_t i = ih[ii];			// True layer number
+		//std::cout<<"Main loop: ii= "<<ii<<", true layer = "<<i<<", Label: "<<fG->lLabl(i)<<std::endl;
+		//std::cout<<"Specific phase dh["<<ii<<"] = "<<dh[ii]<<std::endl;
+		Double_t Eff = fG->GetEfficiency(i);	// Layer efficiency
+		Double_t Rnd = gRandom->Rndm();
+		if (fG->isMeasure(i) && Rnd<Eff){			// Measurement layer
+			//std::cout<<"Track pt= "<<pt()<<", Layer "<<i<<", Efficiency "<<100*Eff<<"%"<<std::endl;
+			Double_t Ri = rh[ii];
+			Double_t zi = zh[ii];
+			Int_t ityp  = fG->lTyp(i);	// Layer type Barrel or Z
+			Int_t nmeai = fG->lND(i);	// # measurements in layer
+			fNmeasure += nmeai;		// Increment number of measurements
+			Double_t stri = 0;		// Stereo angle
+			Double_t sig = 0;		// Resolution
+			Double_t csa = 0;		// Cosine stereo angle
+			Double_t ssa = 0;		// Sine stereo angle
+			Double_t sg;			//** protected resolution
+			TVectorD Rm(5); 		// Measurement derivative
+			TMatrixD Hk(nmeai,5);	// dzk/dalpha
+			TMatrixDSym Rk(nmeai);	// Measurements covariance
+			Rk.Zero();
+			//
+			// Barrel type layer
+			//
+			if(ityp == 1){
+				// Constant R derivatives
+				TVectorD dRphi(5); dRphi.Zero(); // R-phi derivatives @ const. R
+				TVectorD dRz(5); dRz.Zero();	 // z     derivatives @ const. R
+				// Exact solution
+				dRphi = derRphi_R(tPar, Ri);
+				dRz   = derZ_R   (tPar, Ri);
+				// loop on # measurements
+				for (Int_t nmi = 0; nmi < nmeai; nmi++){
+				//
+					if (nmi + 1 == 1){			// Upper layer measurements
+						stri = fG->lStU(i);		// Stereo angle
+						sig  = fG->lSgU(i);		// Resolution
+					}
+					if(nmi + 1 == 2){			// Lower layer measurement
+						stri = fG->lStL(i);		// Stereo angle
+						sig  = fG->lSgL(i);		// Resolution
+					}
+					if(!Res)sig = 0.2E-6;	// Set to 1 micron for perfect resolution
+					//
+					csa = TMath::Cos(stri);
+					ssa = TMath::Sin(stri);
+					//
+					Rm.Zero();
+					Rm = csa*dRphi - ssa*dRz;
+					//
+					// Update Rk, Hk
+					Rk(nmi,nmi) = sig*sig;
+					TMatrixDRow(Hk,nmi) = Rm;
+				}
+			}
+			//
+			// Disk type layer at constant z
+			//
+			if(ityp == 2){
+				// loop on # measurements
+				for (Int_t nmi = 0; nmi < nmeai; nmi++){
+				//
+					if (nmi + 1 == 1){			// Upper layer measurements
+						sig = fG->lSgU(i);		// Resolution
+						TVectorD dRphz(5); dRphz.Zero();	// R-phi derivatives @ const. z
+						dRphz = derRphi_Z(tPar, zi);
+						//
+						Rm = dRphz;
+					}
+					if(nmi + 1 == 2){
+						sig = fG->lSgL(i);		// Resolution
+						TVectorD dRRz(5); dRRz.Zero();	// R     derivatives @ const. z
+						dRRz = derR_Z(tPar, zi);
+						//
+						Rm = dRRz;
+					}
+					if(!Res)sig = 0.2e-6;	// Set to .1 micron for perfect resolution
+					//
+					// Update Rk, Hk
+					Rk(nmi,nmi) = sig*sig;
+					TMatrixDRow(Hk,nmi) = Rm;
+				}
+			}
+			// Update Kalman gain
+			//cout<<"Hk = "; Hk.Print();
+			TMatrixDSym Ckm1(fCov);
+			TMatrixDSym KG = Rk+Ckm1.Similarity(Hk);
+			//cout<<"KG = "; KG.Print();
+			TMatrixDSym KGm1(nmeai);
+			if(nmeai == 2)KGm1 = RegInv(KG);
+			else{
+				Double_t KGval = KG(0,0);
+				KGm1(0,0) = 1./KGval;
+			}
+			TMatrixDSym KkHk = KGm1.SimilarityT(Hk);
+			//cout<<"KkHk = "; KkHk.Print();
+			// Update covariance
+			//fCov += Qkm1-KkHk.Similarity(fCov+Qkm1);
+			TMatrixDSym U(5);
+			for(Int_t j=0; j<5; j++)U(j,j)=1.0;
+			TMatrixDSym Pkkm1 = fCov+Qkm1;
+			TMatrixD Arg1 = Pkkm1*(U-KkHk*Pkkm1);
+			TMatrixD Arg2 = (U-Pkkm1*KkHk)*Pkkm1;
+			TMatrixD Mean = (1./2.)*(Arg1+Arg2);
+			for(Int_t k1=0; k1<5; k1++){
+				for(Int_t k2=k1; k2<5; k2++){
+					fCov(k1,k2) = (Mean(k1,k2)+Mean(k2,k1))/2.;
+					fCov(k2,k1) = fCov(k1,k2);
+				}
+			}
+			//
+		}else fCov += Qkm1;
+	}
+	//std::cout<<"Covariance matrix:"; fCov.Print();
+	//cout<<"******************* DONE ****************"<<endl;
+	//
+	//*********************************************
+	// Check covariance matrix ********************
+	//*********************************************
+	TDecompChol Chl(fCov,1.e-12);
+	if (!Chl.Decompose()) {
+		std::cout << "SolTrack::KalmanCov: Error matrix not positive definite."<<std::endl;
+		TMatrixDSym NormCov(5); TVectorD diag(5);
+		std::cout<<"OldfCov:"; fCov.Print();
+		for(Int_t i=0;i<5;i++)diag(i) = TMath::Sqrt(TMath::Abs(fCov(i,i)));
+		for(Int_t i=0;i<5;i++){
+			for(Int_t j=0;j<5;j++)NormCov(i,j) = fCov(i,j)/(diag(i)*diag(j));
+		}
+		std::cout<<"Norm Cov"; NormCov.Print();
+		TMatrixDSym NormCovRec = MakePosDef(NormCov);
+		std::cout<<"Recovered normalized cov matrix;"; NormCovRec.Print();
+		for(Int_t i=0;i<5;i++){
+			for(Int_t j=0;j<5;j++)fCov(i,j) = NormCovRec(i,j)*diag(i)*diag(j);
+		}
+		//std::cout<<"New fCov:"; fCov.Print();
+	}
 	//
 	// Cleanup
 	delete [] zh;
@@ -1347,7 +1708,7 @@ TMatrixDSym SolTrack::MakePosDef(TMatrixDSym NormMat)
 	for (Int_t i = 0; i < Size; i++)if (TMath::Abs(NormMat(i, i) - 1.0)>1.0E-15)Check = kTRUE;
 	if (Check)
 	{
-		std::cout << "SolTrack::MakePosDef: input matrix doesn ot have 1 on diagonal. Abort." << std::endl;
+		std::cout << "SolTrack::MakePosDef: input matrix doesn not have 1 on diagonal. Abort." << std::endl;
 		return rMatN;
 	}
 	//
