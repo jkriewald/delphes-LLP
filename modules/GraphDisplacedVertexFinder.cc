@@ -520,10 +520,10 @@ void GraphDisplacedVertexFinder::Process() {
     if (fVerbose) std::cout<< "Running Salvage GraphClustering on " << leftover_tracks.size() << " leftover tracks" << std::endl;
 
     GraphOpts tight_opts = fGraphOpts;
-    tight_opts.chi2PairCut = std::min(1.0, tight_opts.chi2PairCut *= 0.8);
-    tight_opts.chi2TripCut = std::min(1.0, tight_opts.chi2TripCut *= 0.8);
-    tight_opts.chi2AssociationMax = std::min(1.0, tight_opts.chi2AssociationMax *= 0.8);
-    tight_opts.bridgeCut = std::min(1.0, tight_opts.bridgeCut *= 0.8);
+    tight_opts.chi2PairCut = std::max(1.0, tight_opts.chi2PairCut *= 0.8);
+    tight_opts.chi2TripCut = std::max(1.0, tight_opts.chi2TripCut *= 0.8);
+    tight_opts.chi2AssociationMax = std::max(1.0, tight_opts.chi2AssociationMax *= 0.8);
+    tight_opts.bridgeCut = std::max(1.0, tight_opts.bridgeCut *= 0.8);
     tight_opts.minSupport += 1;
     tight_opts.salvage_pass = true;
 
