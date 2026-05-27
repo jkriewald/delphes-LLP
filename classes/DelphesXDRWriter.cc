@@ -26,9 +26,9 @@
 
 #include "classes/DelphesXDRWriter.h"
 
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 
 //------------------------------------------------------------------------------
 

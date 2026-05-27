@@ -165,30 +165,11 @@ const char *ExRootConfReader::GetString(const char *name, const char *defaultVal
 
 //------------------------------------------------------------------------------
 
-void ExRootConfReader::AddModule(const char *className, const char *moduleName)
-{
-  ExRootTaskMap::iterator itMoudles = fModules.find(moduleName);
-
-  if(itMoudles != fModules.end())
-  {
-    cout << "** WARNING: module '" << moduleName << "' is already configured.";
-    cout << " Only first entry will be used." << endl;
-  }
-  else
-  {
-    fModules.insert(make_pair(moduleName, className));
-    cout << left;
-    cout << setw(30) << "** INFO: adding module";
-    cout << setw(25) << className;
-    cout << setw(25) << moduleName << endl;
-  }
-}
-
-//------------------------------------------------------------------------------
-
 int ModuleObjCmdProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-  ExRootConfReader *reader = static_cast<ExRootConfReader *>(clientData);
+  Tcl_Obj *object;
+  TString name;
+  int rc;
 
   if(objc < 3)
   {
@@ -198,16 +179,20 @@ int ModuleObjCmdProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
   // add module to a list of modules to be created
 
-  reader->AddModule(Tcl_GetStringFromObj(objv[1], 0), Tcl_GetStringFromObj(objv[2], 0));
-
   if(objc > 3)
   {
-    Tcl_Obj *object = Tcl_NewListObj(0, 0);
+    object = Tcl_NewListObj(0, 0);
     Tcl_ListObjAppendElement(interp, object, Tcl_NewStringObj("namespace", -1));
     Tcl_ListObjAppendElement(interp, object, Tcl_NewStringObj("eval", -1));
     Tcl_ListObjAppendList(interp, object, Tcl_NewListObj(objc - 2, objv + 2));
 
-    return Tcl_GlobalEvalObj(interp, object);
+    rc = Tcl_GlobalEvalObj(interp, object);
+
+    if(rc != TCL_OK) return rc;
+
+    name = Tcl_GetStringFromObj(objv[2], 0);
+    object = Tcl_NewStringObj(name + "::Class", -1);
+    Tcl_ObjSetVar2(interp, object, 0, objv[1], TCL_GLOBAL_ONLY);
   }
 
   return TCL_OK;

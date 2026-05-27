@@ -315,6 +315,7 @@ tmp/readers/DelphesPythia8.$(ObjSuf): \
 	classes/DelphesClasses.h \
 	classes/DelphesFactory.h \
 	classes/DelphesLHEFReader.h \
+	classes/DelphesPythia8Reader.h \
 	modules/Delphes.h \
 	external/ExRootAnalysis/ExRootProgressBar.h \
 	external/ExRootAnalysis/ExRootTreeBranch.h \
@@ -323,22 +324,37 @@ EXECUTABLE +=  \
 	DelphesPythia8$(ExeSuf)
 EXECUTABLE_OBJ +=  \
 	tmp/readers/DelphesPythia8.$(ObjSuf)
-tmp/modules/Pythia8Dict.$(SrcSuf): \
-	modules/Pythia8LinkDef.h \
-	modules/PileUpMergerPythia8.h
-tmp/modules/Pythia8Dict$(PcmSuf): \
-	tmp/modules/Pythia8Dict.$(SrcSuf)
-Pythia8Dict$(PcmSuf): \
-	tmp/modules/Pythia8Dict$(PcmSuf)
+tmp/classes/ClassesPythia8Dict.$(SrcSuf): \
+	classes/ClassesPythia8LinkDef.h \
+	classes/DelphesPythia8Reader.h
+tmp/classes/ClassesPythia8Dict$(PcmSuf): \
+	tmp/classes/ClassesPythia8Dict.$(SrcSuf)
+ClassesPythia8Dict$(PcmSuf): \
+	tmp/classes/ClassesPythia8Dict$(PcmSuf)
 DELPHES_DICT_OBJ +=  \
-	tmp/modules/Pythia8Dict.$(ObjSuf)
+	tmp/classes/ClassesPythia8Dict.$(ObjSuf)
 DELPHES_DICT_PCM +=  \
-	Pythia8Dict$(PcmSuf)
+	ClassesPythia8Dict$(PcmSuf)
+tmp/modules/ModulesPythia8Dict.$(SrcSuf): \
+	modules/ModulesPythia8LinkDef.h \
+	modules/PileUpMergerPythia8.h
+tmp/modules/ModulesPythia8Dict$(PcmSuf): \
+	tmp/modules/ModulesPythia8Dict.$(SrcSuf)
+ModulesPythia8Dict$(PcmSuf): \
+	tmp/modules/ModulesPythia8Dict$(PcmSuf)
+DELPHES_DICT_OBJ +=  \
+	tmp/modules/ModulesPythia8Dict.$(ObjSuf)
+DELPHES_DICT_PCM +=  \
+	ModulesPythia8Dict$(PcmSuf)
 endif
 tmp/classes/ClassesDict.$(SrcSuf): \
 	classes/ClassesLinkDef.h \
 	classes/DelphesModule.h \
 	classes/DelphesFactory.h \
+	classes/DelphesHepMC2Reader.h \
+	classes/DelphesHepMC3Reader.h \
+	classes/DelphesLHEFReader.h \
+	classes/DelphesSTDHEPReader.h \
 	classes/SortableObject.h \
 	classes/DelphesClasses.h
 tmp/classes/ClassesDict$(PcmSuf): \
@@ -431,19 +447,19 @@ DELPHES_DICT_PCM +=  \
 	ClassesDict$(PcmSuf) \
 	ExRootAnalysisDict$(PcmSuf) \
 	ModulesDict$(PcmSuf)
-tmp/modules/FastJetDict.$(SrcSuf): \
-	modules/FastJetLinkDef.h \
+tmp/modules/ModulesFastJetDict.$(SrcSuf): \
+	modules/ModulesFastJetLinkDef.h \
 	modules/FastJetFinder.h \
 	modules/FastJetGridMedianEstimator.h \
 	modules/RunPUPPI.h
-tmp/modules/FastJetDict$(PcmSuf): \
-	tmp/modules/FastJetDict.$(SrcSuf)
-FastJetDict$(PcmSuf): \
-	tmp/modules/FastJetDict$(PcmSuf)
+tmp/modules/ModulesFastJetDict$(PcmSuf): \
+	tmp/modules/ModulesFastJetDict.$(SrcSuf)
+ModulesFastJetDict$(PcmSuf): \
+	tmp/modules/ModulesFastJetDict$(PcmSuf)
 FASTJET_DICT_OBJ +=  \
-	tmp/modules/FastJetDict.$(ObjSuf)
+	tmp/modules/ModulesFastJetDict.$(ObjSuf)
 FASTJET_DICT_PCM +=  \
-	FastJetDict$(PcmSuf)
+	ModulesFastJetDict$(PcmSuf)
 tmp/display/DisplayDict.$(SrcSuf): \
 	display/DisplayLinkDef.h \
 	display/DelphesDisplay.h \
@@ -519,6 +535,13 @@ tmp/classes/DelphesPileUpWriter.$(ObjSuf): \
 	classes/DelphesPileUpWriter.$(SrcSuf) \
 	classes/DelphesPileUpWriter.h \
 	classes/DelphesXDRWriter.h
+tmp/classes/DelphesPythia8Reader.$(ObjSuf): \
+	classes/DelphesPythia8Reader.$(SrcSuf) \
+	classes/DelphesPythia8Reader.h \
+	classes/DelphesClasses.h \
+	classes/DelphesFactory.h \
+	classes/DelphesStream.h \
+	external/ExRootAnalysis/ExRootTreeBranch.h
 tmp/classes/DelphesSTDHEPReader.$(ObjSuf): \
 	classes/DelphesSTDHEPReader.$(SrcSuf) \
 	classes/DelphesSTDHEPReader.h \
@@ -685,8 +708,8 @@ tmp/modules/Cloner.$(ObjSuf): \
 tmp/modules/ClusterCounting.$(ObjSuf): \
 	modules/ClusterCounting.$(SrcSuf) \
 	modules/ClusterCounting.h \
-	classes/DelphesClasses.h \
-	external/TrackCovariance/TrkUtil.h
+	external/TrackCovariance/TrkUtil.h \
+	classes/DelphesClasses.h
 tmp/modules/ConstituentFilter.$(ObjSuf): \
 	modules/ConstituentFilter.$(SrcSuf) \
 	modules/ConstituentFilter.h \
@@ -700,8 +723,8 @@ tmp/modules/CscClusterEfficiency.$(ObjSuf): \
 	modules/CscClusterEfficiency.$(SrcSuf) \
 	modules/CscClusterEfficiency.h \
 	classes/DelphesClasses.h \
-	classes/DelphesFactory.h \
 	classes/DelphesCscClusterFormula.h \
+	classes/DelphesFactory.h \
 	external/ExRootAnalysis/ExRootClassifier.h \
 	external/ExRootAnalysis/ExRootFilter.h \
 	external/ExRootAnalysis/ExRootResult.h
@@ -709,8 +732,8 @@ tmp/modules/CscClusterId.$(ObjSuf): \
 	modules/CscClusterId.$(SrcSuf) \
 	modules/CscClusterId.h \
 	classes/DelphesClasses.h \
-	classes/DelphesFactory.h \
 	classes/DelphesCscClusterFormula.h \
+	classes/DelphesFactory.h \
 	external/ExRootAnalysis/ExRootClassifier.h \
 	external/ExRootAnalysis/ExRootFilter.h \
 	external/ExRootAnalysis/ExRootResult.h
@@ -749,9 +772,9 @@ tmp/modules/DualReadoutCalorimeter.$(ObjSuf): \
 	classes/DelphesClasses.h \
 	classes/DelphesFactory.h \
 	classes/DelphesFormula.h \
-	external/ExRootAnalysis/ExRootResult.h \
+	external/ExRootAnalysis/ExRootClassifier.h \
 	external/ExRootAnalysis/ExRootFilter.h \
-	external/ExRootAnalysis/ExRootClassifier.h
+	external/ExRootAnalysis/ExRootResult.h
 tmp/modules/Efficiency.$(ObjSuf): \
 	modules/Efficiency.$(SrcSuf) \
 	modules/Efficiency.h \
@@ -1053,9 +1076,9 @@ tmp/modules/TrackCovariance.$(ObjSuf): \
 	modules/TrackCovariance.$(SrcSuf) \
 	modules/TrackCovariance.h \
 	classes/DelphesClasses.h \
+	external/TrackCovariance/ObsTrk.h \
 	external/TrackCovariance/SolGeom.h \
 	external/TrackCovariance/SolGridCov.h \
-	external/TrackCovariance/ObsTrk.h \
 	classes/DelphesFormula.h
 tmp/modules/TrackPileUpSubtractor.$(ObjSuf): \
 	modules/TrackPileUpSubtractor.$(SrcSuf) \
@@ -1271,6 +1294,7 @@ DELPHES_OBJ +=  \
 	tmp/modules/Weighter.$(ObjSuf)
 ifeq ($(HAS_PYTHIA8),true)
 DELPHES_OBJ +=  \
+	tmp/classes/DelphesPythia8Reader.$(ObjSuf) \
 	tmp/modules/PileUpMergerPythia8.$(ObjSuf)
 endif
 tmp/external/PUPPI/PuppiAlgo.$(ObjSuf): \
@@ -2377,8 +2401,7 @@ external/fastjet/LimitedWarning.hh: \
 	external/fastjet/internal/thread_safety_helpers.hh
 	@touch $@
 external/fastjet/config.h: \
-	external/fastjet/config_auto.h \
-	external/fastjet/config_win.h
+	external/fastjet/config_auto.h
 	@touch $@
 modules/CscClusterId.h: \
 	classes/DelphesModule.h

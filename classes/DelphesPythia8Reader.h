@@ -1,6 +1,6 @@
 /*
  *  Delphes: a framework for fast simulation of a generic collider experiment
- *  Copyright (C) 2012-2014  Universite catholique de Louvain (UCL), Belgium
+ *  Copyright (C) 2012-2026  Universite catholique de Louvain (UCLouvain), Belgium
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,53 +16,48 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DelphesSTDHEPReader_h
-#define DelphesSTDHEPReader_h
+#ifndef DelphesPythia8Reader_h
+#define DelphesPythia8Reader_h
 
-/** \class DelphesSTDHEPReader
+/** \class DelphesPythia8Reader
  *
- *  Reads STDHEP file
+ *  Reads Pythia8 data
  *
- *  \author P. Demin - UCL, Louvain-la-Neuve
+ *  \author P. Demin - UCLouvain, Louvain-la-Neuve
  *
  */
 
-#include <cstdint>
+#include <string>
+
 #include <cstdio>
 
 #include "TObject.h"
-
-#include "classes/DelphesXDRReader.h"
 
 class TObjArray;
 class TStopwatch;
 class TDatabasePDG;
 class ExRootTreeBranch;
 class DelphesFactory;
-class DelphesXDRReader;
 
-class DelphesSTDHEPReader: public TObject
+namespace Pythia8
+{
+class Pythia;
+class CombineMatchingInput;
+} // namespace Pythia8
+
+class DelphesPythia8Reader: public TObject
 {
 public:
-  enum STDHEPBlock
-  {
-    GENERIC = 0,
-    FILEHEADER = 1,
-    EVENTTABLE = 2,
-    EVENTHEADER = 4,
-    MCFIO_STDHEP = 101,
-    MCFIO_STDHEPBEG = 106,
-    MCFIO_STDHEPEND = 107,
-    MCFIO_STDHEP4 = 201
-  };
-
-  DelphesSTDHEPReader();
-  ~DelphesSTDHEPReader();
+  DelphesPythia8Reader();
+  ~DelphesPythia8Reader();
 
   void OpenInputFile(const char *inputFileName);
   void CloseInputFile();
 
   void SetInputFile(FILE *inputFile);
+
+  bool ReadLHEF();
+  std::string FileNameLHEF();
 
   void Clear();
   bool EventReady();
@@ -71,15 +66,6 @@ public:
     TObjArray *allParticleOutputArray,
     TObjArray *stableParticleOutputArray,
     TObjArray *partonOutputArray);
-
-  [[deprecated("ReadBlock has been renamed to ReadEvent")]]
-  bool ReadBlock(DelphesFactory *factory,
-    TObjArray *allParticleOutputArray,
-    TObjArray *stableParticleOutputArray,
-    TObjArray *partonOutputArray)
-  {
-    return ReadEvent(factory, allParticleOutputArray, stableParticleOutputArray, partonOutputArray);
-  }
 
   void AnalyzeEvent(ExRootTreeBranch *branch, long long eventNumber,
     TStopwatch *readStopWatch = 0, TStopwatch *procStopWatch = 0);
@@ -92,32 +78,28 @@ private:
     TObjArray *stableParticleOutputArray,
     TObjArray *partonOutputArray);
 
-  void SkipBytes(int size);
-  void SkipArray(int elsize);
+  Pythia8::Pythia *fPythia = nullptr;
+  Pythia8::CombineMatchingInput *fCombine = nullptr;
 
-  void ReadFileHeader();
-  void ReadEventTable();
-  void ReadEventHeader();
-  void ReadSTDCM1();
-  void ReadSTDHEP();
-  void ReadSTDHEP4();
+  TDatabasePDG *fPDG = nullptr;
 
-  FILE *fInputFile;
+  Long64_t fEventCounter = 0;
+  Long64_t fErrorCounter = 0;
 
-  DelphesXDRReader fReader[7];
+  Long64_t fNumberOfEvents = 0;
+  Long64_t fTimesAllowErrors = 0;
 
-  uint8_t *fBuffer;
+  Int_t fFrameType = 0;
+  std::string fFileNameLHEF;
 
-  TDatabasePDG *fPDG;
+  Bool_t fSpareFlag1 = false;
+  Int_t fSpareMode1 = 0;
+  Double_t fSpareParm1 = 0.0;
+  Double_t fSpareParm2 = 0.0;
 
-  uint32_t fEntries;
-  int32_t fBlockType, fEventNumber, fEventSize;
-  double fWeight, fAlphaQCD, fAlphaQED;
+  bool fEventReady;
 
-  uint32_t fScaleSize;
-  double fScale[10];
-
-  ClassDef(DelphesSTDHEPReader, 1)
+  ClassDef(DelphesPythia8Reader, 1)
 };
 
-#endif // DelphesSTDHEPReader_h
+#endif // DelphesPythia8Reader_h

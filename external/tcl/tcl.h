@@ -505,7 +505,7 @@ EXTERN Tcl_Obj *	Tcl_NewListObj _ANSI_ARGS_((int objc,
 			    Tcl_Obj *CONST objv[]));
 EXTERN Tcl_Obj *	Tcl_NewLongObj _ANSI_ARGS_((long longValue));
 EXTERN Tcl_Obj *	Tcl_NewObj _ANSI_ARGS_((void));
-EXTERN Tcl_Obj *	Tcl_NewStringObj _ANSI_ARGS_((char *bytes,
+EXTERN Tcl_Obj *	Tcl_NewStringObj _ANSI_ARGS_((CONST char *bytes,
 			    int length));
 
 /*

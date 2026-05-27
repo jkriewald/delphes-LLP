@@ -27,8 +27,8 @@
  *
  */
 
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
 
 class DelphesXDRWriter;
 

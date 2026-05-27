@@ -28,6 +28,11 @@
 #include "classes/DelphesModule.h"
 #include "classes/DelphesFactory.h"
 
+#include "classes/DelphesHepMC2Reader.h"
+#include "classes/DelphesHepMC3Reader.h"
+#include "classes/DelphesLHEFReader.h"
+#include "classes/DelphesSTDHEPReader.h"
+
 #include "classes/SortableObject.h"
 #include "classes/DelphesClasses.h"
 
@@ -39,6 +44,11 @@
 
 #pragma link C++ class DelphesModule+;
 #pragma link C++ class DelphesFactory+;
+
+#pragma link C++ class DelphesHepMC2Reader+;
+#pragma link C++ class DelphesHepMC3Reader+;
+#pragma link C++ class DelphesLHEFReader+;
+#pragma link C++ class DelphesSTDHEPReader+;
 
 #pragma link C++ class SortableObject+;
 

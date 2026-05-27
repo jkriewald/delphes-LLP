@@ -20,7 +20,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <signal.h>
+#include <csignal>
 
 #include "TApplication.h"
 #include "TROOT.h"
@@ -141,29 +141,27 @@ int main(int argc, char *argv[])
       eventCounter = 0;
       factory->Clear();
       reader->Clear();
-      while(reader->ReadBlock(factory, allParticleOutputArray,
+      while(reader->ReadEvent(factory, allParticleOutputArray,
               stableParticleOutputArray, partonOutputArray)
         && !interrupted)
       {
-        if(reader->EventReady())
+        ++eventCounter;
+
+        itParticle->Reset();
+        while((candidate = static_cast<Candidate *>(itParticle->Next())))
         {
-          ++eventCounter;
-
-          itParticle->Reset();
-          while((candidate = static_cast<Candidate *>(itParticle->Next())))
-          {
-            const TLorentzVector &position = candidate->Position;
-            const TLorentzVector &momentum = candidate->Momentum;
-            writer->WriteParticle(candidate->PID,
-              position.X(), position.Y(), position.Z(), position.T(),
-              momentum.Px(), momentum.Py(), momentum.Pz(), momentum.E());
-          }
-
-          writer->WriteEntry();
-
-          factory->Clear();
-          reader->Clear();
+          const TLorentzVector &position = candidate->Position;
+          const TLorentzVector &momentum = candidate->Momentum;
+          writer->WriteParticle(candidate->PID,
+            position.X(), position.Y(), position.Z(), position.T(),
+            momentum.Px(), momentum.Py(), momentum.Pz(), momentum.E());
         }
+
+        writer->WriteEntry();
+
+        factory->Clear();
+        reader->Clear();
+
         progressBar.Update(ftello(inputFile), eventCounter);
       }
 

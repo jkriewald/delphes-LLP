@@ -30,8 +30,8 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
 
 #include "classes/DelphesXDRWriter.h"
 

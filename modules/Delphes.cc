@@ -52,8 +52,8 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 using namespace std;
 
@@ -112,10 +112,8 @@ void Delphes::Init()
   confReader->SetName("ConfReader");
   GetFolder()->Add(confReader);
 
-  TString name;
+  TString cl, name;
   ExRootTask *task;
-  const ExRootConfReader::ExRootTaskMap *modules = confReader->GetModules();
-  ExRootConfReader::ExRootTaskMap::const_iterator itModules;
 
   ExRootConfParam param = confReader->GetParam("::ExecutionPath");
   Long_t i, size = param.GetSize();
@@ -125,10 +123,10 @@ void Delphes::Init()
   for(i = 0; i < size; ++i)
   {
     name = param[i].GetString();
-    itModules = modules->find(name);
-    if(itModules != modules->end())
+    cl = confReader->GetString(name + "::Class", "");
+    if(cl != "")
     {
-      task = NewTask(itModules->second, itModules->first);
+      task = NewTask(cl, name);
       if(task)
       {
         task->SetFolder(GetFolder());

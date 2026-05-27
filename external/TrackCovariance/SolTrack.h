@@ -61,8 +61,10 @@ public:
 	void OldCovCalc(Bool_t Res, Bool_t MS);
 	void CovCalc(Bool_t Res, Bool_t MS);
 	// Track parameter covariance calculation with Kalman filter
-	void KalmanCov (Bool_t Res, Bool_t MS, Double_t mass = 0.13957021);
-	void KalmanCovT(Bool_t Res, Bool_t MS, Double_t mass = 0.13957021);
+	void KalmanCov (Bool_t Res, Bool_t MS, Double_t mass = 0.13957021);	// Partial Kalman
+	Bool_t fKsuccess;	// TRUE if covariance calculation successful
+	void KalmanCovT(Bool_t Res, Bool_t MS, Double_t mass = 0.13957021);	// Full Kalman
+	Bool_t fKTsuccess;	// TRUE if covariance calculation successful
 	// Parameter errors
 	Double_t s_D()    { return TMath::Sqrt(fCov(0, 0)); }
 	Double_t s_phi0() { return TMath::Sqrt(fCov(1, 1)); }

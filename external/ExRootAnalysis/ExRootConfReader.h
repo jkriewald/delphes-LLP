@@ -11,9 +11,6 @@
 
 #include "TNamed.h"
 
-#include <map>
-#include <utility>
-
 struct Tcl_Obj;
 struct Tcl_Interp;
 
@@ -42,8 +39,6 @@ private:
 class ExRootConfReader: public TNamed
 {
 public:
-  typedef std::map<TString, TString> ExRootTaskMap;
-
   ExRootConfReader();
   ~ExRootConfReader();
 
@@ -56,18 +51,12 @@ public:
   const char *GetString(const char *name, const char *defaultValue, int index = -1);
   ExRootConfParam GetParam(const char *name);
 
-  const ExRootTaskMap *GetModules() const { return &fModules; }
-
-  void AddModule(const char *className, const char *moduleName);
-
   const char *GetTopDir() const { return fTopDir; }
 
 private:
   const char *fTopDir; //!
 
   Tcl_Interp *fTclInterp; //!
-
-  ExRootTaskMap fModules; //!
 
   ClassDef(ExRootConfReader, 1)
 };

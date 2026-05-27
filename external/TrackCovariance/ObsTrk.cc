@@ -110,6 +110,9 @@ ObsTrk::ObsTrk(TVector3 x, TVector3 p, Double_t Q, Double_t mass, SolGeom *G)
 	//
 	FillGen();
 	//
+	//std::cout<<"Track x= "; x.Print();
+	//std::cout<<"Track p= "; p.Print();
+	//std::cout<<"Charge = "<<Q<<", Track parameters: "; fGenPar.Print();
 	SolTrack trk(fGenX, fGenP, fGenQ, fG);
 	Bool_t Res = kTRUE;	// Turn resolution on
 	Bool_t MS  = kTRUE; // Turn multiple scattering on
@@ -117,7 +120,20 @@ ObsTrk::ObsTrk(TVector3 x, TVector3 p, Double_t Q, Double_t mass, SolGeom *G)
 	//std::cout<<"ObsTrk: Q= "<<Q<<", mass= "<<mass<<", p input:"<<std::endl; p.Print();
 	trk.KalmanCovT(Res, MS, mass);
 	fNmeasure = trk.GetUmeas();		// Available only after call to KalmanCov or KalmanCovT
+	if(!trk.fKTsuccess){
+		std::cout<<"ObstTrk::KalmanCovT failed. Trying KalmanCov."<<std::endl;
+		trk.KalmanCov(Res, MS, mass);	// Try partial Kalman
+		if(!trk.fKsuccess){
+			std::cout<<"ObstTrk also KalmanCov failed. Skipping track."<<std::endl;
+			fNmeasure = 0;	// Force skipping track
+		}
+		else{
+			std::cout<<"ObstTrk::KalmanCov successful."<<std::endl;
+		}
+	}
 	fCov = trk.Cov();
+	//std::cout<<"# measurements = "<<fNmeasure<<std::endl;
+	//std::cout<<"Track Cov= "; fCov.Print();
 	fCovMm = CovToMm(fCov);
 	fCovACTS = CovToACTS(fObsPar, fCov);
 	fCovILC = CovToILC(fCov);

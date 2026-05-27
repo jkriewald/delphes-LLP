@@ -1,6 +1,6 @@
 /*
  *  Delphes: a framework for fast simulation of a generic collider experiment
- *  Copyright (C) 2018  Universite catholique de Louvain (UCL), Belgium
+ *  Copyright (C) 2012-2026  Universite catholique de Louvain (UCLouvain), Belgium
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,38 +16,23 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DelphesXDRReader_h
-#define DelphesXDRReader_h
 
-/** \class DelphesXDRReader
+/** \class
  *
- *  Reads XDR
+ *  Lists classes to be included in cint dicitonary
  *
- *  \author P. Demin - UCL, Louvain-la-Neuve
+ *  \author P. Demin - UCLouvain, Louvain-la-Neuve
  *
  */
 
-#include <cstdint>
-#include <cstdio>
+#include "classes/DelphesPythia8Reader.h"
 
-class DelphesXDRReader
-{
-public:
-  DelphesXDRReader();
+#ifdef __CINT__
 
-  void SetFile(FILE *file);
-  void SetBuffer(void *buffer);
-  void SetOffset(int offset);
+#pragma link off all globals;
+#pragma link off all classes;
+#pragma link off all functions;
 
-  void ReadRaw(void *value, int size);
-  void ReadValue(void *value, int size);
-  void ReadString(void *value, int maxSize);
+#pragma link C++ class DelphesPythia8Reader+;
 
-private:
-  FILE *fFile;
-  uint8_t *fBuffer;
-
-  int fOffset;
-};
-
-#endif // DelphesXDRReader_h
+#endif

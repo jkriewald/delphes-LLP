@@ -20,7 +20,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <signal.h>
+#include <csignal>
 
 #include "TApplication.h"
 #include "TROOT.h"
@@ -179,33 +179,31 @@ int main(int argc, char *argv[])
       modularDelphes->Clear();
       reader->Clear();
       readStopWatch.Start();
-      while((maxEvents <= 0 || eventCounter - skipEvents < maxEvents) && reader->ReadBlock(factory, allParticleOutputArray, stableParticleOutputArray, partonOutputArray) && !interrupted)
+      while((maxEvents <= 0 || eventCounter - skipEvents < maxEvents) && reader->ReadEvent(factory, allParticleOutputArray, stableParticleOutputArray, partonOutputArray) && !interrupted)
       {
-        if(reader->EventReady())
+        ++eventCounter;
+
+        readStopWatch.Stop();
+
+        if(eventCounter > skipEvents)
         {
-          ++eventCounter;
+          procStopWatch.Start();
+          modularDelphes->ProcessTask();
+          procStopWatch.Stop();
 
-          readStopWatch.Stop();
+          reader->AnalyzeEvent(branchEvent, eventCounter, &readStopWatch, &procStopWatch);
+          reader->AnalyzeWeight(branchWeight);
 
-          if(eventCounter > skipEvents)
-          {
-            procStopWatch.Start();
-            modularDelphes->ProcessTask();
-            procStopWatch.Stop();
+          treeWriter->Fill();
 
-            reader->AnalyzeEvent(branchEvent, eventCounter, &readStopWatch, &procStopWatch);
-            reader->AnalyzeWeight(branchWeight);
-
-            treeWriter->Fill();
-
-            treeWriter->Clear();
-          }
-
-          modularDelphes->Clear();
-          reader->Clear();
-
-          readStopWatch.Start();
+          treeWriter->Clear();
         }
+
+        modularDelphes->Clear();
+        reader->Clear();
+
+        readStopWatch.Start();
+
         progressBar.Update(ftello(inputFile), eventCounter);
       }
 

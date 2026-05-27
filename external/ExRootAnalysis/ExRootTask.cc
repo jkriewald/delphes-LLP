@@ -12,6 +12,7 @@
 
 #include "TClass.h"
 #include "TFolder.h"
+#include "TList.h"
 #include "TROOT.h"
 #include "TString.h"
 
@@ -20,21 +21,27 @@
 #include <sstream>
 #include <stdexcept>
 
-static const char *const kINIT = "0";
-static const char *const kPROCESS = "1";
-static const char *const kFINISH = "2";
+static const Int_t kINIT = 0;
+static const Int_t kPROCESS = 1;
+static const Int_t kFINISH = 2;
 
 using namespace std;
 
 ExRootTask::ExRootTask() :
-  TTask("", ""), fFolder(0), fConfReader(0)
+  TNamed("", "")
 {
+  fTasks = new TList();
+  fTasks->SetOwner(kTRUE);
+
+  fItTasks = fTasks->MakeIterator();
 }
 
 //------------------------------------------------------------------------------
 
 ExRootTask::~ExRootTask()
 {
+  delete fItTasks;
+  delete fTasks;
 }
 
 //------------------------------------------------------------------------------
@@ -57,8 +64,10 @@ void ExRootTask::Finish()
 
 //------------------------------------------------------------------------------
 
-void ExRootTask::Exec(Option_t *option)
+void ExRootTask::ExecuteTask(Int_t option)
 {
+  ExRootTask *task;
+
   if(option == kINIT)
   {
     cout << left;
@@ -73,6 +82,12 @@ void ExRootTask::Exec(Option_t *option)
   else if(option == kFINISH)
   {
     Finish();
+  }
+
+  fItTasks->Reset();
+  while((task = static_cast<ExRootTask *>(fItTasks->Next())))
+  {
+    task->ExecuteTask(option);
   }
 }
 
@@ -99,28 +114,7 @@ void ExRootTask::FinishTask()
 
 //------------------------------------------------------------------------------
 
-void ExRootTask::InitSubTasks()
-{
-  ExecuteTasks(kINIT);
-}
-
-//------------------------------------------------------------------------------
-
-void ExRootTask::ProcessSubTasks()
-{
-  ExecuteTasks(kPROCESS);
-}
-
-//------------------------------------------------------------------------------
-
-void ExRootTask::FinishSubTasks()
-{
-  ExecuteTasks(kFINISH);
-}
-
-//------------------------------------------------------------------------------
-
-void ExRootTask::Add(TTask *task)
+void ExRootTask::Add(ExRootTask *task)
 {
   stringstream message;
 
@@ -133,7 +127,7 @@ void ExRootTask::Add(TTask *task)
     throw runtime_error(message.str());
   }
 
-  TTask::Add(task);
+  fTasks->Add(task);
 }
 
 //------------------------------------------------------------------------------
@@ -172,20 +166,6 @@ ExRootTask *ExRootTask::NewTask(const char *className, const char *taskName)
   }
 
   return NewTask(cl, taskName);
-}
-
-//------------------------------------------------------------------------------
-
-const ExRootConfReader::ExRootTaskMap *ExRootTask::GetModules()
-{
-  if(fConfReader)
-  {
-    return fConfReader->GetModules();
-  }
-  else
-  {
-    return 0;
-  }
 }
 
 //------------------------------------------------------------------------------

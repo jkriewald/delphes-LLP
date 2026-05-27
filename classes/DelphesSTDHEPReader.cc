@@ -30,10 +30,10 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <errno.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 
 #include "TDatabasePDG.h"
 #include "TLorentzVector.h"
@@ -70,6 +70,31 @@ DelphesSTDHEPReader::~DelphesSTDHEPReader()
 
 //---------------------------------------------------------------------------
 
+void DelphesSTDHEPReader::OpenInputFile(const char *inputFileName)
+{
+  FILE *inputFile;
+  stringstream message;
+
+  inputFile = fopen(inputFileName, "rb");
+
+  if(inputFile == NULL)
+  {
+    message << "can't open " << inputFileName;
+    throw runtime_error(message.str());
+  }
+
+  SetInputFile(inputFile);
+}
+
+//---------------------------------------------------------------------------
+
+void DelphesSTDHEPReader::CloseInputFile()
+{
+  if(fInputFile) fclose(fInputFile);
+}
+
+//---------------------------------------------------------------------------
+
 void DelphesSTDHEPReader::SetInputFile(FILE *inputFile)
 {
   fInputFile = inputFile;
@@ -92,49 +117,52 @@ bool DelphesSTDHEPReader::EventReady()
 
 //---------------------------------------------------------------------------
 
-bool DelphesSTDHEPReader::ReadBlock(DelphesFactory *factory,
+bool DelphesSTDHEPReader::ReadEvent(DelphesFactory *factory,
   TObjArray *allParticleOutputArray,
   TObjArray *stableParticleOutputArray,
   TObjArray *partonOutputArray)
 {
-  fReader[0].ReadValue(&fBlockType, 4);
+  while(!EventReady())
+  {
+    fReader[0].ReadValue(&fBlockType, 4);
 
-  if(feof(fInputFile)) return kFALSE;
+    if(feof(fInputFile)) return kFALSE;
 
-  SkipBytes(4);
+    SkipBytes(4);
 
-  if(fBlockType == FILEHEADER)
-  {
-    ReadFileHeader();
-  }
-  else if(fBlockType == EVENTTABLE)
-  {
-    ReadEventTable();
-  }
-  else if(fBlockType == EVENTHEADER)
-  {
-    ReadEventHeader();
-  }
-  else if(fBlockType == MCFIO_STDHEPBEG || fBlockType == MCFIO_STDHEPEND)
-  {
-    ReadSTDCM1();
-  }
-  else if(fBlockType == MCFIO_STDHEP)
-  {
-    ReadSTDHEP();
-    AnalyzeParticles(factory, allParticleOutputArray,
-      stableParticleOutputArray, partonOutputArray);
-  }
-  else if(fBlockType == MCFIO_STDHEP4)
-  {
-    ReadSTDHEP();
-    AnalyzeParticles(factory, allParticleOutputArray,
-      stableParticleOutputArray, partonOutputArray);
-    ReadSTDHEP4();
-  }
-  else
-  {
-    throw runtime_error("Unsupported block type.");
+    if(fBlockType == FILEHEADER)
+    {
+      ReadFileHeader();
+    }
+    else if(fBlockType == EVENTTABLE)
+    {
+      ReadEventTable();
+    }
+    else if(fBlockType == EVENTHEADER)
+    {
+      ReadEventHeader();
+    }
+    else if(fBlockType == MCFIO_STDHEPBEG || fBlockType == MCFIO_STDHEPEND)
+    {
+      ReadSTDCM1();
+    }
+    else if(fBlockType == MCFIO_STDHEP)
+    {
+      ReadSTDHEP();
+      AnalyzeParticles(factory, allParticleOutputArray,
+        stableParticleOutputArray, partonOutputArray);
+    }
+    else if(fBlockType == MCFIO_STDHEP4)
+    {
+      ReadSTDHEP();
+      AnalyzeParticles(factory, allParticleOutputArray,
+        stableParticleOutputArray, partonOutputArray);
+      ReadSTDHEP4();
+    }
+    else
+    {
+      throw runtime_error("Unsupported block type.");
+    }
   }
 
   return kTRUE;
@@ -448,8 +476,14 @@ void DelphesSTDHEPReader::AnalyzeEvent(ExRootTreeBranch *branch, long long /*eve
   element->AlphaQED = fAlphaQED;
   element->AlphaQCD = fAlphaQCD;
 
-  element->ReadTime = readStopWatch->RealTime();
-  element->ProcTime = procStopWatch->RealTime();
+  element->ReadTime = readStopWatch ? readStopWatch->RealTime() : 0;
+  element->ProcTime = procStopWatch ? procStopWatch->RealTime() : 0;
+}
+
+//---------------------------------------------------------------------------
+
+void DelphesSTDHEPReader::AnalyzeWeight(ExRootTreeBranch *branch)
+{
 }
 
 //---------------------------------------------------------------------------

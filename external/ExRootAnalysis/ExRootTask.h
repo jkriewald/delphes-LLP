@@ -9,14 +9,16 @@
  *
  */
 
-#include "TTask.h"
+#include "TNamed.h"
 
 #include "ExRootAnalysis/ExRootConfReader.h"
 
 class TClass;
 class TFolder;
+class TIterator;
+class TList;
 
-class ExRootTask: public TTask
+class ExRootTask: public TNamed
 {
 public:
   ExRootTask();
@@ -30,16 +32,10 @@ public:
   virtual void ProcessTask();
   virtual void FinishTask();
 
-  virtual void InitSubTasks();
-  virtual void ProcessSubTasks();
-  virtual void FinishSubTasks();
-
-  void Add(TTask *task);
+  void Add(ExRootTask *task);
 
   ExRootTask *NewTask(TClass *cl, const char *name);
   ExRootTask *NewTask(const char *className, const char *taskName);
-
-  void Exec(Option_t *option);
 
   int GetInt(const char *name, int defaultValue, int index = -1);
   long GetLong(const char *name, long defaultValue, int index = -1);
@@ -47,7 +43,6 @@ public:
   bool GetBool(const char *name, bool defaultValue, int index = -1);
   const char *GetString(const char *name, const char *defaultValue, int index = -1);
   ExRootConfParam GetParam(const char *name);
-  const ExRootConfReader::ExRootTaskMap *GetModules();
 
   void SetFolder(TFolder *folder) { fFolder = folder; }
   void SetConfReader(ExRootConfReader *conf) { fConfReader = conf; }
@@ -60,8 +55,12 @@ protected:
   TObject *GetObject(const char *name, TClass *cl);
 
 private:
-  TFolder *fFolder; //!
-  ExRootConfReader *fConfReader; //!
+  void ExecuteTask(Int_t option);
+
+  TIterator *fItTasks = nullptr; //!
+  TList *fTasks = nullptr; //!
+  TFolder *fFolder = nullptr; //!
+  ExRootConfReader *fConfReader = nullptr; //!
 
   ClassDef(ExRootTask, 1)
 };

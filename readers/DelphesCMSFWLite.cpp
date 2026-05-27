@@ -25,9 +25,9 @@
 #include <map>
 #include <vector>
 
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
 
 #include "TApplication.h"
 #include "TROOT.h"

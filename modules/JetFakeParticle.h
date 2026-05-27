@@ -30,6 +30,8 @@
 
 #include "classes/DelphesModule.h"
 
+#include <map>
+
 class TIterator;
 class TObjArray;
 class DelphesFormula;

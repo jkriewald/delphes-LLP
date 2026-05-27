@@ -38,6 +38,8 @@ SolTrack::SolTrack(Double_t *x, Double_t *p, SolGeom *G)
 	// Init covariances
 	//
 	fCov.ResizeTo(5, 5);
+	fKsuccess  = kTRUE;	// Default is Kalman has succeeded
+	fKTsuccess = kTRUE;
 }
 SolTrack::SolTrack(TVector3 x, TVector3 p, Double_t Charge, SolGeom* G)
 {
@@ -64,6 +66,8 @@ SolTrack::SolTrack(TVector3 x, TVector3 p, Double_t Charge, SolGeom* G)
 	// Init covariances
 	//
 	fCov.ResizeTo(5, 5);
+	fKsuccess  = kTRUE;	// Default is Kalman has succeeded
+	fKTsuccess = kTRUE;
 }
 SolTrack::SolTrack(TVector3 x, TVector3 p, SolGeom* G)
 {
@@ -93,6 +97,8 @@ SolTrack::SolTrack(TVector3 x, TVector3 p, SolGeom* G)
 	// Init covariances
 	//
 	fCov.ResizeTo(5, 5);
+	fKsuccess  = kTRUE;	// Default is Kalman has succeeded
+	fKTsuccess = kTRUE;
 }
 //
 SolTrack::SolTrack(Double_t D, Double_t phi0, Double_t C, Double_t z0, Double_t ct, SolGeom *G)
@@ -120,6 +126,8 @@ SolTrack::SolTrack(Double_t D, Double_t phi0, Double_t C, Double_t z0, Double_t 
 	// Init covariances
 	//
 	fCov.ResizeTo(5, 5);
+	fKsuccess  = kTRUE;	// Default is Kalman has succeeded
+	fKTsuccess = kTRUE;
 }
 // Destructor
 SolTrack::~SolTrack()
@@ -1106,6 +1114,13 @@ void SolTrack::CovCalc(Bool_t Res, Bool_t MS)
 void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 {
 	//
+	//********************************************************
+	// This is a partial implementation of Kalman filter
+	// that is more time consuming than full Kalman (about x2)
+	// but provides much better computational stability
+	// We use it only when the standard Kalman version fails
+	// due to rounding off problems.
+	//********************************************************
 	//
 	// Input flags:
 	//				Res = .TRUE. turn on resolution effects/Use standard resolutions
@@ -1355,22 +1370,34 @@ void SolTrack::KalmanCov(Bool_t Res, Bool_t MS, Double_t mass)
 	//*********************************************
 	// Check covariance matrix ********************
 	//*********************************************
-	TDecompChol Chl(fCov,1.e-12);
-	if (!Chl.Decompose()) {
-		std::cout << "SolTrack::KalmanCov: Error matrix not positive definite."<<std::endl;
-		TMatrixDSym NormCov(5); TVectorD diag(5);
-		std::cout<<"OldfCov:"; fCov.Print();
-		for(Int_t i=0;i<5;i++)diag(i) = TMath::Sqrt(fCov(i,i));
-		for(Int_t i=0;i<5;i++){
-			for(Int_t j=0;j<5;j++)NormCov(i,j) = fCov(i,j)/(diag(i)*diag(j));
+	//
+	// Check for negative diagonal values
+	Bool_t BadDiag = kFALSE;
+	for(Int_t i=0; i<5; i++)if(fCov(i,i)<0.0) BadDiag = kTRUE;
+	if(BadDiag){
+		std::cout << "SolTrack::KalmanCov: Error matrix has negative diagonal elements."<<std::endl;
+		fKsuccess = kFALSE;
+	}else{
+		TDecompChol Chl(fCov,1.e-12);
+		if (!Chl.Decompose()) {
+			std::cout << "SolTrack::KalmanCov: Error matrix not positive definite."<<std::endl;
+			fKsuccess = kFALSE;
+			/*
+			TMatrixDSym NormCov(5); TVectorD diag(5);
+			std::cout<<"OldfCov:"; fCov.Print();
+			for(Int_t i=0;i<5;i++)diag(i) = TMath::Sqrt(fCov(i,i));
+			for(Int_t i=0;i<5;i++){
+				for(Int_t j=0;j<5;j++)NormCov(i,j) = fCov(i,j)/(diag(i)*diag(j));
+			}
+			std::cout<<"Norm Cov"; NormCov.Print();
+			TMatrixDSym NormCovRec = MakePosDef(NormCov);
+			std::cout<<"Recovered normalized cov matrix;"; NormCovRec.Print();
+			for(Int_t i=0;i<5;i++){
+				for(Int_t j=0;j<5;j++)fCov(i,j) = NormCovRec(i,j)*diag(i)*diag(j);
+			}
+			//std::cout<<"New fCov:"; fCov.Print();
+			*/
 		}
-		std::cout<<"Norm Cov"; NormCov.Print();
-		TMatrixDSym NormCovRec = MakePosDef(NormCov);
-		std::cout<<"Recovered normalized cov matrix;"; NormCovRec.Print();
-		for(Int_t i=0;i<5;i++){
-			for(Int_t j=0;j<5;j++)fCov(i,j) = NormCovRec(i,j)*diag(i)*diag(j);
-		}
-		//std::cout<<"New fCov:"; fCov.Print();
 	}
 	//
 	// Cleanup
@@ -1543,6 +1570,7 @@ void SolTrack::KalmanCovT(Bool_t Res, Bool_t MS, Double_t mass)
 			TMatrixDSym CaL(5);
 			CaL.Rank1Update(dAlfL,th2);	// Longitudinal plane MS component
 			Qkm1 = CaR + CaL;
+			//std::cout<<"Qkm1: "; Qkm1.Print();
 		}
 		//
 		// Process measurement layers
@@ -1623,7 +1651,7 @@ void SolTrack::KalmanCovT(Bool_t Res, Bool_t MS, Double_t mass)
 						//
 						Rm = dRRz;
 					}
-					if(!Res)sig = 0.2e-6;	// Set to .1 micron for perfect resolution
+					if(!Res)sig = 0.2e-6;	// Set to .2 micron for perfect resolution
 					//
 					// Update Rk, Hk
 					Rk(nmi,nmi) = sig*sig;
@@ -1642,15 +1670,24 @@ void SolTrack::KalmanCovT(Bool_t Res, Bool_t MS, Double_t mass)
 				KGm1(0,0) = 1./KGval;
 			}
 			TMatrixDSym KkHk = KGm1.SimilarityT(Hk);
-			//cout<<"KkHk = "; KkHk.Print();
+			//std::cout<<"KkHk = "; KkHk.Print();
 			// Update covariance
-			//fCov += Qkm1-KkHk.Similarity(fCov+Qkm1);
 			TMatrixDSym U(5);
 			for(Int_t j=0; j<5; j++)U(j,j)=1.0;
 			TMatrixDSym Pkkm1 = fCov+Qkm1;
+			//
+			// This is not computationally stable
+			//TMatrixDSym PKP = KkHk.Similarity(Pkkm1);
+			//fCov = Pkkm1-PKP;
+			//std::cout<<"Pkkm1: "; Pkkm1.Print();
+			//std::cout<<"PKP:   "; PKP.Print();
+			//
 			TMatrixD Arg1 = Pkkm1*(U-KkHk*Pkkm1);
+			//std::cout<<"Arg1: "; Arg1.Print();
 			TMatrixD Arg2 = (U-Pkkm1*KkHk)*Pkkm1;
+			//std::cout<<"Arg2: "; Arg2.Print();
 			TMatrixD Mean = (1./2.)*(Arg1+Arg2);
+			//std::cout<<"Mean: "; Mean.Print();
 			for(Int_t k1=0; k1<5; k1++){
 				for(Int_t k2=k1; k2<5; k2++){
 					fCov(k1,k2) = (Mean(k1,k2)+Mean(k2,k1))/2.;
@@ -1658,6 +1695,8 @@ void SolTrack::KalmanCovT(Bool_t Res, Bool_t MS, Double_t mass)
 				}
 			}
 			//
+			//
+			//std::cout<<"fCov update:"; fCov.Print();
 		}else fCov += Qkm1;
 	}
 	//std::cout<<"Covariance matrix:"; fCov.Print();
@@ -1666,22 +1705,34 @@ void SolTrack::KalmanCovT(Bool_t Res, Bool_t MS, Double_t mass)
 	//*********************************************
 	// Check covariance matrix ********************
 	//*********************************************
-	TDecompChol Chl(fCov,1.e-12);
-	if (!Chl.Decompose()) {
-		std::cout << "SolTrack::KalmanCov: Error matrix not positive definite."<<std::endl;
-		TMatrixDSym NormCov(5); TVectorD diag(5);
-		std::cout<<"OldfCov:"; fCov.Print();
-		for(Int_t i=0;i<5;i++)diag(i) = TMath::Sqrt(TMath::Abs(fCov(i,i)));
-		for(Int_t i=0;i<5;i++){
-			for(Int_t j=0;j<5;j++)NormCov(i,j) = fCov(i,j)/(diag(i)*diag(j));
+	//
+	// Check for negative diagonal values
+	Bool_t BadDiag = kFALSE;
+	for(Int_t i=0; i<5; i++)if(fCov(i,i)<0.0) BadDiag = kTRUE;
+	if(BadDiag){
+		std::cout << "SolTrack::KalmanCovT: Error matrix has negative diagonal elements."<<std::endl;
+		fKTsuccess = kFALSE;
+	}else{
+		TDecompChol Chl(fCov,1.e-12);
+		if (!Chl.Decompose()) {
+			std::cout << "SolTrack::KalmanCovT: Error matrix not positive definite."<<std::endl;
+			fKTsuccess = kFALSE;
+			/*
+			TMatrixDSym NormCov(5); TVectorD diag(5);
+			std::cout<<"OldfCov:"; fCov.Print();
+			for(Int_t i=0;i<5;i++)diag(i) = TMath::Sqrt(TMath::Abs(fCov(i,i)));
+			for(Int_t i=0;i<5;i++){
+				for(Int_t j=0;j<5;j++)NormCov(i,j) = fCov(i,j)/(diag(i)*diag(j));
+			}
+			std::cout<<"Norm Cov"; NormCov.Print();
+			TMatrixDSym NormCovRec = MakePosDef(NormCov);
+			std::cout<<"Recovered normalized cov matrix;"; NormCovRec.Print();
+			for(Int_t i=0;i<5;i++){
+				for(Int_t j=0;j<5;j++)fCov(i,j) = NormCovRec(i,j)*diag(i)*diag(j);
+			}
+			//std::cout<<"New fCov:"; fCov.Print();
+			*/
 		}
-		std::cout<<"Norm Cov"; NormCov.Print();
-		TMatrixDSym NormCovRec = MakePosDef(NormCov);
-		std::cout<<"Recovered normalized cov matrix;"; NormCovRec.Print();
-		for(Int_t i=0;i<5;i++){
-			for(Int_t j=0;j<5;j++)fCov(i,j) = NormCovRec(i,j)*diag(i)*diag(j);
-		}
-		//std::cout<<"New fCov:"; fCov.Print();
 	}
 	//
 	// Cleanup

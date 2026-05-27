@@ -27,10 +27,12 @@
  *
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <utility>
 #include <vector>
+
+#include "TObject.h"
 
 class TObjArray;
 class TStopwatch;
@@ -38,24 +40,36 @@ class TDatabasePDG;
 class ExRootTreeBranch;
 class DelphesFactory;
 
-class DelphesLHEFReader
+class DelphesLHEFReader: public TObject
 {
 public:
   DelphesLHEFReader();
   ~DelphesLHEFReader();
+
+  void OpenInputFile(const char *inputFileName);
+  void CloseInputFile();
 
   void SetInputFile(FILE *inputFile);
 
   void Clear();
   bool EventReady();
 
-  bool ReadBlock(DelphesFactory *factory,
+  bool ReadEvent(DelphesFactory *factory,
     TObjArray *allParticleOutputArray,
     TObjArray *stableParticleOutputArray,
     TObjArray *partonOutputArray);
 
+  [[deprecated("ReadBlock has been renamed to ReadEvent")]]
+  bool ReadBlock(DelphesFactory *factory,
+    TObjArray *allParticleOutputArray,
+    TObjArray *stableParticleOutputArray,
+    TObjArray *partonOutputArray)
+  {
+    return ReadEvent(factory, allParticleOutputArray, stableParticleOutputArray, partonOutputArray);
+  }
+
   void AnalyzeEvent(ExRootTreeBranch *branch, long long eventNumber,
-    TStopwatch *readStopWatch, TStopwatch *procStopWatch);
+    TStopwatch *readStopWatch = 0, TStopwatch *procStopWatch = 0);
 
   void AnalyzeWeight(ExRootTreeBranch *branch);
 
@@ -82,6 +96,8 @@ private:
   double fPx, fPy, fPz, fE, fMass;
 
   std::vector<std::pair<int, double> > fWeightList;
+
+  ClassDef(DelphesLHEFReader, 1)
 };
 
 #endif // DelphesLHEFReader_h

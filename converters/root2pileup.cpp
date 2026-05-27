@@ -21,7 +21,7 @@
 #include <stdexcept>
 #include <string>
 
-#include <signal.h>
+#include <csignal>
 
 #include "TApplication.h"
 #include "TROOT.h"

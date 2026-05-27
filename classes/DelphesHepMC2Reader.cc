@@ -33,7 +33,7 @@
 #include <map>
 #include <vector>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "TDatabasePDG.h"
 #include "TLorentzVector.h"
@@ -72,6 +72,31 @@ DelphesHepMC2Reader::~DelphesHepMC2Reader()
 
 //---------------------------------------------------------------------------
 
+void DelphesHepMC2Reader::OpenInputFile(const char *inputFileName)
+{
+  FILE *inputFile;
+  stringstream message;
+
+  inputFile = fopen(inputFileName, "r");
+
+  if(inputFile == NULL)
+  {
+    message << "can't open " << inputFileName;
+    throw runtime_error(message.str());
+  }
+
+  SetInputFile(inputFile);
+}
+
+//---------------------------------------------------------------------------
+
+void DelphesHepMC2Reader::CloseInputFile()
+{
+  if(fInputFile) fclose(fInputFile);
+}
+
+//---------------------------------------------------------------------------
+
 void DelphesHepMC2Reader::SetInputFile(FILE *inputFile)
 {
   fInputFile = inputFile;
@@ -104,7 +129,7 @@ bool DelphesHepMC2Reader::EventReady()
 
 //---------------------------------------------------------------------------
 
-bool DelphesHepMC2Reader::ReadBlock(DelphesFactory *factory,
+bool DelphesHepMC2Reader::ReadEvent(DelphesFactory *factory,
   TObjArray *allParticleOutputArray,
   TObjArray *stableParticleOutputArray,
   TObjArray *partonOutputArray)
@@ -115,206 +140,198 @@ bool DelphesHepMC2Reader::ReadBlock(DelphesFactory *factory,
   int i, rc, state;
   double weight;
 
-  if(!fgets(fBuffer, kBufferSize, fInputFile)) return kFALSE;
-
-  DelphesStream bufferStream(fBuffer + 1);
-
-  key = fBuffer[0];
-
-  if(key == 'E')
+  while(!EventReady())
   {
-    Clear();
+    if(!fgets(fBuffer, kBufferSize, fInputFile)) return kFALSE;
 
-    rc = bufferStream.ReadInt(fEventNumber)
-      && bufferStream.ReadInt(fMPI)
-      && bufferStream.ReadDbl(fScale)
-      && bufferStream.ReadDbl(fAlphaQCD)
-      && bufferStream.ReadDbl(fAlphaQED)
-      && bufferStream.ReadInt(fProcessID)
-      && bufferStream.ReadInt(fSignalCode)
-      && bufferStream.ReadInt(fVertexCounter)
-      && bufferStream.ReadInt(fBeamCode[0])
-      && bufferStream.ReadInt(fBeamCode[1])
-      && bufferStream.ReadInt(fStateSize);
+    DelphesStream bufferStream(fBuffer + 1);
 
-    if(!rc)
-    {
-      cerr << "** ERROR: "
-           << "invalid event format" << endl;
-      return kFALSE;
-    }
+    key = fBuffer[0];
 
-    for(i = 0; i < fStateSize; ++i)
+    if(key == 'E')
     {
-      rc = rc && bufferStream.ReadInt(state);
-      fState.push_back(state);
-    }
+      Clear();
 
-    rc = rc && bufferStream.ReadInt(fWeightSize);
+      rc = bufferStream.ReadInt(fEventNumber)
+        && bufferStream.ReadInt(fMPI)
+        && bufferStream.ReadDbl(fScale)
+        && bufferStream.ReadDbl(fAlphaQCD)
+        && bufferStream.ReadDbl(fAlphaQED)
+        && bufferStream.ReadInt(fProcessID)
+        && bufferStream.ReadInt(fSignalCode)
+        && bufferStream.ReadInt(fVertexCounter)
+        && bufferStream.ReadInt(fBeamCode[0])
+        && bufferStream.ReadInt(fBeamCode[1])
+        && bufferStream.ReadInt(fStateSize);
 
-    if(!rc)
-    {
-      cerr << "** ERROR: "
-           << "invalid event format" << endl;
-      return kFALSE;
-    }
-
-    for(i = 0; i < fWeightSize; ++i)
-    {
-      rc = rc && bufferStream.ReadDbl(weight);
-      fWeight.push_back(weight);
-    }
-
-    if(!rc)
-    {
-      cerr << "** ERROR: "
-           << "invalid event format" << endl;
-      return kFALSE;
-    }
-  }
-  else if(key == 'U')
-  {
-    rc = sscanf(fBuffer + 1, "%3s %2s", momentumUnit, positionUnit);
-
-    if(rc != 2)
-    {
-      cerr << "** ERROR: "
-           << "invalid units format" << endl;
-      return kFALSE;
-    }
-
-    if(strncmp(momentumUnit, "GEV", 3) == 0)
-    {
-      fMomentumCoefficient = 1.0;
-    }
-    else if(strncmp(momentumUnit, "MEV", 3) == 0)
-    {
-      fMomentumCoefficient = 0.001;
-    }
-
-    if(strncmp(positionUnit, "MM", 3) == 0)
-    {
-      fPositionCoefficient = 1.0;
-    }
-    else if(strncmp(positionUnit, "CM", 3) == 0)
-    {
-      fPositionCoefficient = 10.0;
-    }
-  }
-  else if(key == 'C')
-  {
-    rc = bufferStream.ReadDbl(fCrossSection)
-      && bufferStream.ReadDbl(fCrossSectionError);
-
-    if(!rc)
-    {
-      cerr << "** ERROR: "
-           << "invalid cross section format" << endl;
-      return kFALSE;
-    }
-  }
-  else if(key == 'F')
-  {
-    rc = bufferStream.ReadInt(fID1)
-      && bufferStream.ReadInt(fID2)
-      && bufferStream.ReadDbl(fX1)
-      && bufferStream.ReadDbl(fX2)
-      && bufferStream.ReadDbl(fScalePDF)
-      && bufferStream.ReadDbl(fPDF1)
-      && bufferStream.ReadDbl(fPDF2);
-
-    if(!rc)
-    {
-      cerr << "** ERROR: "
-           << "invalid PDF format" << endl;
-      return kFALSE;
-    }
-  }
-  else if(key == 'V' && fVertexCounter > 0)
-  {
-    rc = bufferStream.ReadInt(fOutVertexCode)
-      && bufferStream.ReadInt(fVertexID)
-      && bufferStream.ReadDbl(fX)
-      && bufferStream.ReadDbl(fY)
-      && bufferStream.ReadDbl(fZ)
-      && bufferStream.ReadDbl(fT)
-      && bufferStream.ReadInt(fInCounter)
-      && bufferStream.ReadInt(fOutCounter);
-
-    if(!rc)
-    {
-      cerr << "** ERROR: "
-           << "invalid vertex format" << endl;
-      return kFALSE;
-    }
-    --fVertexCounter;
-  }
-  else if(key == 'P' && fOutCounter > 0)
-  {
-    rc = bufferStream.ReadInt(fParticleCode)
-      && bufferStream.ReadInt(fPID)
-      && bufferStream.ReadDbl(fPx)
-      && bufferStream.ReadDbl(fPy)
-      && bufferStream.ReadDbl(fPz)
-      && bufferStream.ReadDbl(fE)
-      && bufferStream.ReadDbl(fMass)
-      && bufferStream.ReadInt(fStatus)
-      && bufferStream.ReadDbl(fTheta)
-      && bufferStream.ReadDbl(fPhi)
-      && bufferStream.ReadInt(fInVertexCode);
-
-    if(!rc)
-    {
-      cerr << "** ERROR: "
-           << "invalid particle format" << endl;
-      return kFALSE;
-    }
-
-    if(fInVertexCode < 0)
-    {
-      itMotherMap = fMotherMap.find(fInVertexCode);
-      if(itMotherMap == fMotherMap.end())
+      if(!rc)
       {
-        fMotherMap[fInVertexCode] = make_pair(fParticleCounter, -1);
+        cerr << "** ERROR: invalid event format" << endl;
+        return kFALSE;
+      }
+
+      for(i = 0; i < fStateSize; ++i)
+      {
+        rc = rc && bufferStream.ReadInt(state);
+        fState.push_back(state);
+      }
+
+      rc = rc && bufferStream.ReadInt(fWeightSize);
+
+      if(!rc)
+      {
+        cerr << "** ERROR: invalid event format" << endl;
+        return kFALSE;
+      }
+
+      for(i = 0; i < fWeightSize; ++i)
+      {
+        rc = rc && bufferStream.ReadDbl(weight);
+        fWeight.push_back(weight);
+      }
+
+      if(!rc)
+      {
+        cerr << "** ERROR: invalid event format" << endl;
+        return kFALSE;
+      }
+    }
+    else if(key == 'U')
+    {
+      rc = sscanf(fBuffer + 1, "%3s %2s", momentumUnit, positionUnit);
+
+      if(rc != 2)
+      {
+        cerr << "** ERROR: invalid units format" << endl;
+        return kFALSE;
+      }
+
+      if(strncmp(momentumUnit, "GEV", 3) == 0)
+      {
+        fMomentumCoefficient = 1.0;
+      }
+      else if(strncmp(momentumUnit, "MEV", 3) == 0)
+      {
+        fMomentumCoefficient = 0.001;
+      }
+
+      if(strncmp(positionUnit, "MM", 3) == 0)
+      {
+        fPositionCoefficient = 1.0;
+      }
+      else if(strncmp(positionUnit, "CM", 3) == 0)
+      {
+        fPositionCoefficient = 10.0;
+      }
+    }
+    else if(key == 'C')
+    {
+      rc = bufferStream.ReadDbl(fCrossSection)
+        && bufferStream.ReadDbl(fCrossSectionError);
+
+      if(!rc)
+      {
+        cerr << "** ERROR: invalid cross section format" << endl;
+        return kFALSE;
+      }
+    }
+    else if(key == 'F')
+    {
+      rc = bufferStream.ReadInt(fID1)
+        && bufferStream.ReadInt(fID2)
+        && bufferStream.ReadDbl(fX1)
+        && bufferStream.ReadDbl(fX2)
+        && bufferStream.ReadDbl(fScalePDF)
+        && bufferStream.ReadDbl(fPDF1)
+        && bufferStream.ReadDbl(fPDF2);
+
+      if(!rc)
+      {
+        cerr << "** ERROR: invalid PDF format" << endl;
+        return kFALSE;
+      }
+    }
+    else if(key == 'V' && fVertexCounter > 0)
+    {
+      rc = bufferStream.ReadInt(fOutVertexCode)
+        && bufferStream.ReadInt(fVertexID)
+        && bufferStream.ReadDbl(fX)
+        && bufferStream.ReadDbl(fY)
+        && bufferStream.ReadDbl(fZ)
+        && bufferStream.ReadDbl(fT)
+        && bufferStream.ReadInt(fInCounter)
+        && bufferStream.ReadInt(fOutCounter);
+
+      if(!rc)
+      {
+        cerr << "** ERROR: invalid vertex format" << endl;
+        return kFALSE;
+      }
+      --fVertexCounter;
+    }
+    else if(key == 'P' && fOutCounter > 0)
+    {
+      rc = bufferStream.ReadInt(fParticleCode)
+        && bufferStream.ReadInt(fPID)
+        && bufferStream.ReadDbl(fPx)
+        && bufferStream.ReadDbl(fPy)
+        && bufferStream.ReadDbl(fPz)
+        && bufferStream.ReadDbl(fE)
+        && bufferStream.ReadDbl(fMass)
+        && bufferStream.ReadInt(fStatus)
+        && bufferStream.ReadDbl(fTheta)
+        && bufferStream.ReadDbl(fPhi)
+        && bufferStream.ReadInt(fInVertexCode);
+
+      if(!rc)
+      {
+        cerr << "** ERROR: invalid particle format" << endl;
+        return kFALSE;
+      }
+
+      if(fInVertexCode < 0)
+      {
+        itMotherMap = fMotherMap.find(fInVertexCode);
+        if(itMotherMap == fMotherMap.end())
+        {
+          fMotherMap[fInVertexCode] = make_pair(fParticleCounter, -1);
+        }
+        else
+        {
+          itMotherMap->second.second = fParticleCounter;
+        }
+      }
+
+      if(fInCounter <= 0)
+      {
+        itDaughterMap = fDaughterMap.find(fOutVertexCode);
+        if(itDaughterMap == fDaughterMap.end())
+        {
+          fDaughterMap[fOutVertexCode] = make_pair(fParticleCounter, fParticleCounter);
+        }
+        else
+        {
+          itDaughterMap->second.second = fParticleCounter;
+        }
+      }
+
+      AnalyzeParticle(factory, allParticleOutputArray,
+        stableParticleOutputArray, partonOutputArray);
+
+      if(fInCounter > 0)
+      {
+        --fInCounter;
       }
       else
       {
-        itMotherMap->second.second = fParticleCounter;
+        --fOutCounter;
       }
-    }
 
-    if(fInCounter <= 0)
-    {
-      itDaughterMap = fDaughterMap.find(fOutVertexCode);
-      if(itDaughterMap == fDaughterMap.end())
-      {
-        fDaughterMap[fOutVertexCode] = make_pair(fParticleCounter, fParticleCounter);
-      }
-      else
-      {
-        itDaughterMap->second.second = fParticleCounter;
-      }
+      ++fParticleCounter;
     }
-
-    AnalyzeParticle(factory, allParticleOutputArray,
-      stableParticleOutputArray, partonOutputArray);
-
-    if(fInCounter > 0)
-    {
-      --fInCounter;
-    }
-    else
-    {
-      --fOutCounter;
-    }
-
-    ++fParticleCounter;
   }
 
-  if(EventReady())
-  {
-    FinalizeParticles(allParticleOutputArray);
-  }
+  FinalizeParticles(allParticleOutputArray);
 
   return kTRUE;
 }
@@ -346,8 +363,8 @@ void DelphesHepMC2Reader::AnalyzeEvent(ExRootTreeBranch *branch, long long /*eve
   element->PDF1 = fPDF1;
   element->PDF2 = fPDF2;
 
-  element->ReadTime = readStopWatch->RealTime();
-  element->ProcTime = procStopWatch->RealTime();
+  element->ReadTime = readStopWatch ? readStopWatch->RealTime() : 0;
+  element->ProcTime = procStopWatch ? procStopWatch->RealTime() : 0;
 }
 
 //---------------------------------------------------------------------------
